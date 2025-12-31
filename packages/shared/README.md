@@ -1,15 +1,25 @@
-# shared
+# @sos26/shared
 
-To install dependencies:
+Shared types, utilities, and constants for the SOS26 monorepo.
 
-```bash
-bun install
+## Structure
+
+```
+src/
+├── types/       # Shared TypeScript types and interfaces
+├── utils/       # Shared utility functions
+├── constants/   # Shared constants and configurations
+└── index.ts     # Main export file
 ```
 
-To run:
+## Usage
 
-```bash
-bun run index.ts
+Import shared code in your apps:
+
+```typescript
+import { User, ApiResponse, formatDate, HTTP_STATUS } from '@sos26/shared';
 ```
 
-This project was created using `bun init` in bun v1.2.10. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+## Development
+
+This package is part of the SOS26 monorepo and uses Bun as the runtime.
