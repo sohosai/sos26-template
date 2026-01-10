@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Button } from "@/components/Button";
 
 export const Route = createFileRoute("/")({
 	component: Index,
@@ -19,6 +20,7 @@ function Index() {
 	return (
 		<div>
 			<h1>Welcome Sohosai Online System!</h1>
+			<Button onClick={() => alert("clicked!")}>ボタン</Button>
 		</div>
 	);
 }
