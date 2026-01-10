@@ -29,6 +29,7 @@
     "turbo.json",
     "package.json",
     "tsconfig.json",
-    "tsconfig.*.json"
+    "tsconfig.*.json",
+    "biome.json"
   ]
 }
