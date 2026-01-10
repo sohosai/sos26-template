@@ -1,30 +1,30 @@
 {
-	"compilerOptions": {
-		// Environment setup & latest features
-		"lib": ["ESNext"],
-		"target": "ESNext",
-		"module": "ESNext",
-		"moduleDetection": "force",
-		"jsx": "react-jsx",
-		"allowJs": true,
+  "compilerOptions": {
+    // Environment setup & latest features
+    "lib": ["ESNext"],
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleDetection": "force",
+    "jsx": "react-jsx",
+    "allowJs": true,
 
-		// Bundler mode
-		"moduleResolution": "bundler",
-		"allowImportingTsExtensions": false,
-		"verbatimModuleSyntax": true,
-		"noEmit": true,
+    // Bundler mode
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": false,
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
 
-		// Best practices
-		"strict": true,
-		"skipLibCheck": true,
-		"noFallthroughCasesInSwitch": true,
-		"noUncheckedIndexedAccess": true,
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
+    // Best practices
+    "strict": true,
+    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
 
-		// Some stricter flags (disabled by default)
-		"noPropertyAccessFromIndexSignature": false
-	},
-	"files": [],
-	"references": [{ "path": "./packages/shared" }]
+    // Some stricter flags (disabled by default)
+    "noPropertyAccessFromIndexSignature": false
+  },
+  "files": [],
+  "references": [{ "path": "./packages/shared" }]
 }

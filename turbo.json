@@ -1,34 +1,34 @@
 {
-	"$schema": "https://turbo.build/schema.json",
-	"ui": "tui",
-	"tasks": {
-		"build": {
-			"dependsOn": ["^build"],
-			"outputs": ["dist/**", "build/**"],
-			"outputLogs": "new-only"
-		},
-		"typecheck": {
-			"dependsOn": ["^build"],
-			"outputLogs": "new-only",
-			"outputs": []
-		},
-		"dev": {
-			"cache": false,
-			"persistent": true
-		},
-		"preview": {
-			"cache": false,
-			"persistent": true
-		},
-		"clean": {
-			"cache": false,
-			"outputs": []
-		}
-	},
-	"globalDependencies": [
-		"turbo.json",
-		"package.json",
-		"tsconfig.json",
-		"tsconfig.*.json"
-	]
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", "build/**"],
+      "outputLogs": "new-only"
+    },
+    "typecheck": {
+      "dependsOn": ["^build"],
+      "outputLogs": "new-only",
+      "outputs": []
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "preview": {
+      "cache": false,
+      "persistent": true
+    },
+    "clean": {
+      "cache": false,
+      "outputs": []
+    }
+  },
+  "globalDependencies": [
+    "turbo.json",
+    "package.json",
+    "tsconfig.json",
+    "tsconfig.*.json"
+  ]
 }
