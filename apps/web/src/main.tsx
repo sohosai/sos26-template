@@ -3,6 +3,9 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { routeTree } from "./routeTree.gen";
 
+import "./styles/reset.css";
+import "./styles/global.scss";
+
 // Create a new router instance
 const router = createRouter({ routeTree });
 
