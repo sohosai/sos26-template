@@ -7,11 +7,6 @@
       "outputs": ["dist/**"],
       "outputLogs": "new-only"
     },
-    "typecheck": {
-      "dependsOn": ["^build"],
-      "outputLogs": "new-only",
-      "outputs": []
-    },
     "dev": {
       "cache": false,
       "persistent": true
