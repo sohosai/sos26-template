@@ -112,6 +112,20 @@ bun run ci
 ステージングされたファイルのみが対象となり、修正されたファイルは自動的に再ステージングされます。
 これにより、コードベースの品質が常に保たれます。
 
+## テスト
+
+```bash
+# テストを実行
+bun test
+
+# カバレッジ付きでテストを実行
+bun run test:coverage
+```
+
+**Vitest** を使用してユニットテストを実行します。
+
+詳細は [テストガイド](./docs/testing.md) を参照してください。
+
 ## 技術スタック
 
 ### モノレポ管理
@@ -121,6 +135,7 @@ bun run ci
 ### コード品質
 - **Biome**: Linter と Formatter（厳格なルールセット）
 - **Lefthook**: Git Hooks 管理
+- **Vitest**: ユニットテストフレームワーク
 
 ### API (`apps/api`)
 - **Hono**: 軽量な Web フレームワーク
@@ -158,6 +173,8 @@ bun run ci
 |---------|------|
 | `bun run dev` | すべてのアプリの開発サーバーを起動 |
 | `bun run build` | すべてのパッケージをビルド |
+| `bun test` | テストを実行 |
+| `bun run test:coverage` | カバレッジ付きでテストを実行 |
 | `bun run typecheck` | TypeScript の型チェックを実行 |
 | `bun run lint` | Biome でコードを検証 |
 | `bun run format` | Biome でコードをフォーマット |
