@@ -69,9 +69,12 @@
   },
   "overrides": [
     {
-      "includes": ["**/*.test.ts", "**/*.test.tsx"],
+      "includes": ["**/*.test.ts", "**/*.test.tsx", "**/routeTree.gen.ts"],
       "linter": {
         "rules": {
+          "suspicious": {
+            "noExplicitAny": "off"
+          },
           "security": {
             "noSecrets": "off"
           }
