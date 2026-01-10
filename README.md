@@ -85,11 +85,41 @@ bun run clean:all
 上記に加えて、すべての `node_modules` も削除します。
 実行後は `bun install` で依存関係を再インストールする必要があります。
 
+## コード品質
+
+### Lint と Format
+
+```bash
+# コードをチェックして自動修正
+bun run check
+
+# Lint のみ実行
+bun run lint
+
+# フォーマットのみ実行
+bun run format
+
+# CI で使用（自動修正なし）
+bun run ci
+```
+
+**Biome** を使用してコードの Lint とフォーマットを行っています。
+厳格なルールセットにより、コード品質を保証しています。
+
+### Git Hooks
+
+**Lefthook** により、コミット前に自動で `bun run ci` が実行されます。
+これにより、コードベースの品質が常に保たれます。
+
 ## 技術スタック
 
 ### モノレポ管理
 - **Turborepo**: タスクの並列実行とキャッシング
 - **Bun**: パッケージマネージャー・ランタイム
+
+### コード品質
+- **Biome**: Linter と Formatter（厳格なルールセット）
+- **Lefthook**: Git Hooks 管理
 
 ### API (`apps/api`)
 - **Hono**: 軽量な Web フレームワーク
@@ -110,8 +140,6 @@ bun run clean:all
 - `dev`: 開発サーバーの起動（キャッシュなし、永続的）
 - `build`: ビルド実行（依存関係を考慮）
 - `typecheck`: TypeScript の型チェック
-- `lint`: ESLint によるコード検証
-- `preview`: ビルドしたアプリのプレビュー
 - `clean`: ビルド成果物とキャッシュのクリーンアップ
 
 詳細は `turbo.json` を参照してください。
@@ -123,6 +151,9 @@ bun run clean:all
 | `bun run dev` | すべてのアプリの開発サーバーを起動 |
 | `bun run build` | すべてのパッケージをビルド |
 | `bun run typecheck` | TypeScript の型チェックを実行 |
-| `bun run lint` | ESLint でコードを検証 |
+| `bun run lint` | Biome でコードを検証 |
+| `bun run format` | Biome でコードをフォーマット |
+| `bun run check` | Biome で検証とフォーマットを実行（自動修正） |
+| `bun run ci` | Biome で CI チェック（自動修正なし） |
 | `bun run clean` | ビルド成果物とキャッシュを削除 |
 | `bun run clean:all` | 上記 + node_modules も削除 |
