@@ -73,7 +73,7 @@ bun run typecheck
 bun run clean
 ```
 
-ビルド成果物（`dist`、`build`）とキャッシュファイル（`.turbo`、`.tsbuildinfo`）のみを削除します。
+ビルド成果物（`dist`）と Turborepo のキャッシュ（`.turbo`）のみを削除します。
 依存関係は保持されるため、すぐに開発を再開できます。
 
 ### 完全なクリーンアップ
@@ -133,13 +133,18 @@ bun run ci
 ### 共有パッケージ (`packages/shared`)
 - **TypeScript**: 型定義と共有コード
 
+### TypeScript 設定
+- **Project References**: モノレポ間の型参照を最適化
+- **Composite プロジェクト**: shared パッケージで型定義を生成
+- **統一されたビルド出力**: すべて `dist/` ディレクトリに出力
+
 ## Turbo タスク
 
 プロジェクトでは以下のタスクが Turborepo で管理されています：
 
 - `dev`: 開発サーバーの起動（キャッシュなし、永続的）
-- `build`: ビルド実行（依存関係を考慮）
-- `typecheck`: TypeScript の型チェック
+- `build`: ビルド実行（依存関係を考慮、出力先: `dist/`）
+- `typecheck`: TypeScript の型チェック（Project References により依存パッケージを先にビルド）
 - `clean`: ビルド成果物とキャッシュのクリーンアップ
 
 詳細は `turbo.json` を参照してください。
