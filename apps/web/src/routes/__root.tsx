@@ -27,7 +27,7 @@ function ErrorComponent({ error }: { error: unknown }) {
 
 	return (
 		<div>
-			<div>Error Occered</div>
+			<div>Error Occered.</div>
 			<div>{message}</div>
 		</div>
 	);
