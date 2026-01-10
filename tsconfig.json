@@ -26,5 +26,9 @@
     "noPropertyAccessFromIndexSignature": false
   },
   "files": [],
-  "references": [{ "path": "./packages/shared" }]
+  "references": [
+    { "path": "./apps/web" },
+    { "path": "./apps/api" },
+    { "path": "./packages/shared" }
+  ]
 }
