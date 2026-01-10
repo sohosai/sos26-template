@@ -83,17 +83,11 @@
     },
     {
       "includes": ["**/routeTree.gen.ts"],
-      "linter": {
-        "rules": {
-          "suspicious": {
-            "noExplicitAny": "off"
-          }
-        }
+      "formatter": {
+        "enabled": false
       },
-      "javascript": {
-        "formatter": {
-          "quoteStyle": "single"
-        }
+      "linter": {
+        "enabled": false
       }
     }
   ]
