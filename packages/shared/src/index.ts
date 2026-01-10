@@ -1,3 +1,1 @@
-// Shared code for @sos26 monorepo
-
-export {};
+export * from "./schemas/user.js";
