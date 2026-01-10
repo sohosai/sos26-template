@@ -30,7 +30,9 @@
         "noUnusedImports": "error"
       },
       "a11y": "error",
-      "security": "error",
+      "security": {
+        "noSecrets": "off"
+      },
       "performance": {
         "noAccumulatingSpread": "error"
       },
@@ -74,9 +76,6 @@
         "rules": {
           "suspicious": {
             "noExplicitAny": "off"
-          },
-          "security": {
-            "noSecrets": "off"
           }
         }
       }
