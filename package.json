@@ -13,6 +13,7 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
+    "test": "vitest",
     "typecheck": "tsc -b",
     "lint": "biome lint .",
     "format": "biome format --write .",
