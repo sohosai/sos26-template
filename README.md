@@ -67,11 +67,23 @@ bun run typecheck
 
 ## クリーンアップ
 
-キャッシュと依存関係をクリーンアップする場合：
+### ビルド成果物のみをクリーン（推奨）
 
 ```bash
 bun run clean
 ```
+
+ビルド成果物（`dist`、`build`）とキャッシュファイル（`.turbo`、`.tsbuildinfo`）のみを削除します。
+依存関係は保持されるため、すぐに開発を再開できます。
+
+### 完全なクリーンアップ
+
+```bash
+bun run clean:all
+```
+
+上記に加えて、すべての `node_modules` も削除します。
+実行後は `bun install` で依存関係を再インストールする必要があります。
 
 ## 技術スタック
 
@@ -100,5 +112,17 @@ bun run clean
 - `typecheck`: TypeScript の型チェック
 - `lint`: ESLint によるコード検証
 - `preview`: ビルドしたアプリのプレビュー
+- `clean`: ビルド成果物とキャッシュのクリーンアップ
 
 詳細は `turbo.json` を参照してください。
+
+## 利用可能なスクリプト
+
+| コマンド | 説明 |
+|---------|------|
+| `bun run dev` | すべてのアプリの開発サーバーを起動 |
+| `bun run build` | すべてのパッケージをビルド |
+| `bun run typecheck` | TypeScript の型チェックを実行 |
+| `bun run lint` | ESLint でコードを検証 |
+| `bun run clean` | ビルド成果物とキャッシュを削除 |
+| `bun run clean:all` | 上記 + node_modules も削除 |

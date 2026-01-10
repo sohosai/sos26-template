@@ -7,7 +7,8 @@
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "clean": "rm -rf dist build .turbo .tsbuildinfo"
   },
   "dependencies": {
     "@sos26/shared": "workspace:*",

@@ -13,6 +13,7 @@
   },
   "scripts": {
     "build": "tsc -b",
-    "typecheck": "tsc -b"
+    "typecheck": "tsc -b",
+    "clean": "rm -rf dist build .turbo .tsbuildinfo"
   }
 }

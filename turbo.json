@@ -24,6 +24,10 @@
     "preview": {
       "cache": false,
       "persistent": true
+    },
+    "clean": {
+      "cache": false,
+      "outputs": []
     }
   },
   "globalDependencies": [
