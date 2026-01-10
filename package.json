@@ -1,6 +1,5 @@
 {
   "name": "sos26-template",
-  "module": "index.ts",
   "type": "module",
   "private": true,
   "workspaces": ["apps/*", "packages/*"],
@@ -9,9 +8,7 @@
     "build": "bun run --filter '*' build"
   },
   "devDependencies": {
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
+    "@types/bun": "^1.3.5",
+    "typescript": "~5.9.3"
   }
 }

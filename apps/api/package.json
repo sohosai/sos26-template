@@ -3,12 +3,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "bun run --hot src/index.ts"
+    "dev": "bun run --hot src/index.ts",
+    "build": "bun build src/index.ts --outdir dist --target bun"
   },
   "dependencies": {
+    "@sos26/shared": "workspace:*",
     "hono": "^4.11.3"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "^1.3.5",
+    "typescript": "~5.9.3"
   }
 }

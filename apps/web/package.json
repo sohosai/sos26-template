@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@sos26/shared": "workspace:*",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

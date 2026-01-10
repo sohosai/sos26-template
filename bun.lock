@@ -4,26 +4,25 @@
     "": {
       "name": "sos26-template",
       "devDependencies": {
-        "@types/bun": "latest",
-      },
-      "peerDependencies": {
-        "typescript": "^5",
+        "@types/bun": "^1.3.5",
+        "typescript": "~5.9.3",
       },
     },
     "apps/api": {
       "name": "@sos26/api",
-      "version": "0.0.0",
       "dependencies": {
+        "@sos26/shared": "workspace:*",
         "hono": "^4.11.3",
       },
       "devDependencies": {
-        "@types/bun": "latest",
+        "@types/bun": "^1.3.5",
+        "typescript": "~5.9.3",
       },
     },
     "apps/web": {
       "name": "@sos26/web",
-      "version": "0.0.0",
       "dependencies": {
+        "@sos26/shared": "workspace:*",
         "react": "^19.2.0",
         "react-dom": "^19.2.0",
       },
@@ -44,10 +43,9 @@
     },
     "packages/shared": {
       "name": "@sos26/shared",
-      "version": "0.0.0",
       "devDependencies": {
-        "@types/bun": "latest",
-        "typescript": "^5",
+        "@types/bun": "^1.3.5",
+        "typescript": "~5.9.3",
       },
     },
   },
