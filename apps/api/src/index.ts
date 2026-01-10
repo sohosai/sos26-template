@@ -1,12 +1,12 @@
-import { Hono } from 'hono'
+import { Hono } from "hono";
 
-const app = new Hono()
+const app = new Hono();
 
-app.get('/', (c) => {
-  return c.text('Hello Hono!')
-})
+app.get("/", (c) => {
+	return c.text("Hello Hono!");
+});
 
 export default {
-  port: process.env.PORT || 3000,
-  fetch: app.fetch,
-}
+	port: process.env.PORT || 3000,
+	fetch: app.fetch,
+};

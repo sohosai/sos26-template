@@ -1,15 +1,15 @@
 {
-  "name": "@sos26/api",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "dev": "bun run --hot src/index.ts",
-    "build": "bun run typecheck && bun build src/index.ts --outdir dist --target bun",
-    "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist build .turbo .tsbuildinfo"
-  },
-  "dependencies": {
-    "@sos26/shared": "workspace:*",
-    "hono": "^4.11.3"
-  }
+	"name": "@sos26/api",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "bun run --hot src/index.ts",
+		"build": "bun run typecheck && bun build src/index.ts --outdir dist --target bun",
+		"typecheck": "tsc --noEmit",
+		"clean": "rm -rf dist build .turbo .tsbuildinfo"
+	},
+	"dependencies": {
+		"@sos26/shared": "workspace:*",
+		"hono": "^4.11.3"
+	}
 }
