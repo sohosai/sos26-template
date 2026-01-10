@@ -108,7 +108,8 @@ bun run ci
 
 ### Git Hooks
 
-**Lefthook** により、コミット前に自動で `bun run ci` が実行されます。
+**Lefthook** により、コミット前に Biome によるチェックと自動修正が実行されます。
+ステージングされたファイルのみが対象となり、修正されたファイルは自動的に再ステージングされます。
 これにより、コードベースの品質が常に保たれます。
 
 ## 技術スタック
@@ -132,6 +133,7 @@ bun run ci
 
 ### 共有パッケージ (`packages/shared`)
 - **TypeScript**: 型定義と共有コード
+- **Zod**: スキーマ定義とバリデーション（api/web 間で型を共有）
 
 ### TypeScript 設定
 - **Project References**: モノレポ間の型参照を最適化
@@ -144,10 +146,11 @@ bun run ci
 
 - `dev`: 開発サーバーの起動（キャッシュなし、永続的）
 - `build`: ビルド実行（依存関係を考慮、出力先: `dist/`）
-- `typecheck`: TypeScript の型チェック（Project References により依存パッケージを先にビルド）
 - `clean`: ビルド成果物とキャッシュのクリーンアップ
 
 詳細は `turbo.json` を参照してください。
+
+**注意**: `typecheck` は TypeScript Project References を活用するため、Turbo を経由せず直接 `tsc -b` を実行します。
 
 ## 利用可能なスクリプト
 
