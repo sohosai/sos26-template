@@ -10,7 +10,7 @@
 
     // Bundler mode
     "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
+    "allowImportingTsExtensions": false,
     "verbatimModuleSyntax": true,
     "noEmit": true,
 
@@ -19,16 +19,14 @@
     "skipLibCheck": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
 
     // Some stricter flags (disabled by default)
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false
   },
   "files": [],
   "references": [
-    { "path": "./apps/api" },
-    { "path": "./apps/web" },
     { "path": "./packages/shared" }
   ]
 }

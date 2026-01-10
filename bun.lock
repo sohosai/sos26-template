@@ -14,10 +14,6 @@
         "@sos26/shared": "workspace:*",
         "hono": "^4.11.3",
       },
-      "devDependencies": {
-        "@types/bun": "^1.3.5",
-        "typescript": "~5.9.3",
-      },
     },
     "apps/web": {
       "name": "@sos26/web",
@@ -36,17 +32,12 @@
         "eslint-plugin-react-hooks": "^7.0.1",
         "eslint-plugin-react-refresh": "^0.4.24",
         "globals": "^16.5.0",
-        "typescript": "~5.9.3",
         "typescript-eslint": "^8.46.4",
         "vite": "^7.2.4",
       },
     },
     "packages/shared": {
       "name": "@sos26/shared",
-      "devDependencies": {
-        "@types/bun": "^1.3.5",
-        "typescript": "~5.9.3",
-      },
     },
   },
   "packages": {
