@@ -69,7 +69,7 @@
   },
   "overrides": [
     {
-      "includes": ["**/*.test.ts", "**/*.test.tsx", "**/routeTree.gen.ts"],
+      "includes": ["**/*.test.ts", "**/*.test.tsx"],
       "linter": {
         "rules": {
           "suspicious": {
@@ -78,6 +78,21 @@
           "security": {
             "noSecrets": "off"
           }
+        }
+      }
+    },
+    {
+      "includes": ["**/routeTree.gen.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noExplicitAny": "off"
+          }
+        }
+      },
+      "javascript": {
+        "formatter": {
+          "quoteStyle": "single"
         }
       }
     }
