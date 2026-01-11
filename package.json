@@ -13,7 +13,7 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
-    "test": "vitest",
+    "test": "bun --workspaces test",
     "test:coverage": "vitest --coverage",
     "typecheck": "tsc -b",
     "lint": "biome lint .",
