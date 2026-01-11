@@ -14,7 +14,6 @@
     "dev": "turbo dev",
     "build": "turbo build",
     "test": "bun --workspaces test",
-    "test:coverage": "vitest --coverage",
     "typecheck": "tsc -b",
     "lint": "biome lint .",
     "format": "biome format --write .",

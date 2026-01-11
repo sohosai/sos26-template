@@ -8,19 +8,22 @@
 
 ```bash
 # テストを実行（watch モード）
-bun test
+bun run test
+
+# テストを1回だけ実行（CI用）
+bun run test --run
 
 # カバレッジ付きでテストを実行
-bun run test:coverage
+bun run test --coverage
 ```
 
 ### Watch モード
 
-`bun test` コマンドはデフォルトで watch モードで実行されます。ファイルを変更すると、関連するテストが自動的に再実行されます。
+`bun run test` コマンドはデフォルトで watch モードで実行されます。ファイルを変更すると、関連するテストが自動的に再実行されます。
 
 ### カバレッジレポート
 
-`bun run test:coverage` を実行すると、コードカバレッジレポートが生成されます。レポートは `coverage/` ディレクトリに出力されます。
+`bun run test --coverage` を実行すると、コードカバレッジレポートが生成されます。レポートは `coverage/` ディレクトリに出力されます。
 
 ## テストファイルの作成
 
