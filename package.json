@@ -13,7 +13,8 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
-    "test": "bun --workspaces test",
+    "test:run": "bun --filter './apps/*' --filter './packages/*' test:run",
+    "test:watch": "bun --filter './apps/*' --filter './packages/*' test:watch",
     "typecheck": "tsc -b",
     "lint": "biome lint .",
     "format": "biome format --write .",

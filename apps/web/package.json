@@ -8,7 +8,8 @@
     "typecheck": "tsc -b",
     "preview": "vite preview",
     "clean": "rm -rf dist .turbo",
-    "test": "vitest"
+    "test:run": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@sos26/shared": "workspace:*",
