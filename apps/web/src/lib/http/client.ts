@@ -1,4 +1,5 @@
 import ky from "ky";
+import { env } from "../env";
 
 /**
  * 認証トークン取得
@@ -8,12 +9,9 @@ function getAuthToken(): string | null {
 	return localStorage.getItem("auth_token");
 }
 
-/**
- * ky共通クライアント。prefixUrl・timeout・retry・認証ヘッダを設定
- * ⚠️ TODO: 環境変数のバリデーション実装
- */
+// ky共通クライアント。prefixUrl・timeout・retry・認証ヘッダを設定
 export const httpClient = ky.create({
-	prefixUrl: import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000",
+	prefixUrl: env.VITE_API_BASE_URL,
 	timeout: 10000,
 	retry: {
 		limit: 1,
