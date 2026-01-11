@@ -13,7 +13,7 @@ function getAuthToken(): string | null {
  * ⚠️ TODO: 環境変数のバリデーション実装
  */
 export const httpClient = ky.create({
-	prefixUrl: import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000/api",
+	prefixUrl: import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000",
 	timeout: 10000,
 	retry: {
 		limit: 1,
