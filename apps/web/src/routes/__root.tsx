@@ -18,7 +18,12 @@ function RootComponent() {
 }
 
 function NotFoundComponent() {
-	return <div>404 Not Found.</div>;
+	return (
+		<>
+			<div>ページが見つかりませんでした</div>
+			<div>404 Not Found.</div>
+		</>
+	);
 }
 
 function ErrorComponent({ error }: { error: unknown }) {
@@ -26,9 +31,9 @@ function ErrorComponent({ error }: { error: unknown }) {
 		error instanceof Error ? error.message : String(error ?? "Unknown error");
 
 	return (
-		<div>
-			<div>Error Occered.</div>
+		<>
+			<div>エラーが発生しました</div>
 			<div>{message}</div>
-		</div>
+		</>
 	);
 }
