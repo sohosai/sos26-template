@@ -87,6 +87,9 @@
       },
       "linter": {
         "enabled": false
+      },
+      "assist": {
+        "enabled": false
       }
     }
   ]
