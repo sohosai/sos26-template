@@ -60,7 +60,7 @@ bun run dev
 - API: `cd apps/api && bun run dev`  （http://localhost:3000）
 - Web: `cd apps/web && bun run dev`  （http://localhost:5173）
 
-必要に応じて Web の `VITE_API_BASE_URL` を `.env` で設定します（既定は `http://localhost:3000`）。
+Web の `VITE_API_BASE_URL` は `apps/web/.env`（または `.env.local`）で設定できます（既定は `http://localhost:3000`）。
 
 ## ビルド
 
@@ -142,4 +142,3 @@ bun run ci
 | `bun run ci` | CI 用 Biome チェック |
 | `bun run clean` | 成果物とキャッシュを削除 |
 | `bun run clean:all` | 上記 + 依存関係も削除 |
-

@@ -21,11 +21,14 @@ apps/webで使用する環境変数の設定方法とリファレンスです。
 
 ### 開発環境
 
-プロジェクトルートに `.env` ファイルを作成します。
+`apps/web` ディレクトリ直下に `.env`（または `.env.local`）を作成します。
 
 ```bash
-# .env
+# apps/web/.env
 VITE_API_BASE_URL=http://localhost:3000
+
+# ローカル専用にしたい場合は .env.local を使用
+# apps/web/.env.local が存在すればこちらが優先されます
 ```
 
 ## バリデーション
@@ -74,7 +77,7 @@ function useApi(config: Env) {
 
 ## 実装詳細
 
-環境変数の管理は `src/lib/env.ts` で行われています。
+環境変数の管理は `apps/web/src/lib/env.ts` で行われています。
 
 ### 仕組み
 
