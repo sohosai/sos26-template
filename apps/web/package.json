@@ -1,0 +1,30 @@
+{
+  "name": "@sos26/web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "typecheck": "tsc -b",
+    "preview": "vite preview",
+    "clean": "rm -rf dist .turbo",
+    "test:run": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@sos26/shared": "workspace:*",
+    "@tanstack/react-router": "^1.147.1",
+    "ky": "^1.14.2",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@tanstack/router-devtools": "^1.147.1",
+    "@tanstack/router-plugin": "^1.147.1",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react-swc": "^4.2.2",
+    "vite": "^7.2.4"
+  }
+}
