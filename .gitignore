@@ -12,8 +12,8 @@ coverage
 
 # logs
 logs
-*.log
-report.*.json
+_.log
+report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # dotenv environment variable files
 .env
@@ -26,7 +26,6 @@ report.*.json
 .eslintcache
 .cache
 *.tsbuildinfo
-.turbo
 
 # IntelliJ based IDEs
 .idea

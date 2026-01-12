@@ -1,38 +1,13 @@
 {
   "name": "sos26-template",
+  "module": "index.ts",
   "type": "module",
   "private": true,
-  "packageManager": "bun@1.2.10",
-  "engines": {
-    "bun": ">=1.2.10"
-  },
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
-  "scripts": {
-    "dev": "turbo dev",
-    "build": "turbo build",
-    "test:run": "bun --filter './apps/*' --filter './packages/*' test:run",
-    "test:watch": "bun --filter './apps/*' --filter './packages/*' test:watch",
-    "typecheck": "tsc -b",
-    "lint": "biome lint .",
-    "format": "biome format --write .",
-    "check": "biome check --write .",
-    "ci": "biome ci .",
-    "clean": "turbo clean",
-    "clean:all": "bun run clean && rm -rf node_modules apps/*/node_modules packages/*/node_modules .turbo"
-  },
+  "workspaces": ["apps/*", "packages/*"],
   "devDependencies": {
-    "@biomejs/biome": "^2.3.11",
-    "@vitest/coverage-v8": "^4.0.16",
-    "lefthook": "^2.0.13",
-    "sass-embedded": "^1.97.2",
-    "turbo": "^2.7.3",
-    "typescript": "~5.9.3",
-    "vitest": "^4.0.16"
+    "@types/bun": "latest"
   },
-  "dependencies": {
-    "zod": "^4.3.5"
+  "peerDependencies": {
+    "typescript": "^5"
   }
 }
