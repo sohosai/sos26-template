@@ -127,6 +127,8 @@ bun run ci
   - 環境変数: `docs/apps/web/environment-variables.md`
 - テスト: `docs/testing.md`
 
+より詳しい索引は `docs/README.md` を参照してください。
+
 ## スクリプト一覧
 
 | コマンド | 説明 |
