@@ -1,25 +1,47 @@
 # sos26-template
 
-Turborepo + Bun を使用したモノレポテンプレート
+Turborepo + Bun の軽量モノレポテンプレート。
+
+React (Vite) と Hono (Bun) を、型とスキーマ（Zod）を単一真実源（SSOT）として共有する設計で構築しています。
+
+## 目次
+
+- [特徴](#特徴)
+- [プロジェクト構成](#プロジェクト構成)
+- [前提条件](#前提条件)
+- [セットアップ](#セットアップ)
+- [開発](#開発)
+- [ビルド](#ビルド)
+- [テスト](#テスト)
+- [コード品質](#コード品質)
+- [ドキュメント](#ドキュメント)
+- [スクリプト一覧](#スクリプト一覧)
+
+## 特徴
+
+- モノレポ管理に Turborepo、パッケージマネージャー/ランタイムに Bun
+- `packages/shared` で API スキーマと型を一元管理（Zod + TypeScript）
+- Web は React 19 + Vite、API は Hono + Bun
+- TanStack Router によるファイルベースルーティング
+- Biome による厳格な Lint/Format、Lefthook で自動実行
+- Vitest によるユニットテスト（カバレッジ対応）
 
 ## プロジェクト構成
 
 ```
 .
 ├── apps/
-│   ├── api/         # Hono を使用した API サーバー（Bun ランタイム）
-│   └── web/         # React + Vite のフロントエンドアプリケーション
+│   ├── api/         # Hono (Bun) API サーバー（デフォルト: http://localhost:3000）
+│   └── web/         # React + Vite（デフォルト: http://localhost:5173）
 └── packages/
-    └── shared/      # アプリ間で共有するコードやユーティリティ
+    └── shared/      # API エンドポイント定義・Zod スキーマ（SSOT）
 ```
 
-## 必要な環境
+## 前提条件
 
-- **Bun**: 1.2.10 以上
+- Bun: >= 1.2.10
 
 ## セットアップ
-
-### 1. 依存関係のインストール
 
 ```bash
 bun install
@@ -33,152 +55,91 @@ bun install
 bun run dev
 ```
 
-このコマンドで `api` と `web` が同時に起動します。
+### 個別に起動
 
-### 個別のアプリを起動
+- API: `cd apps/api && bun run dev`  （http://localhost:3000）
+- Web: `cd apps/web && bun run dev`  （http://localhost:5173）
 
-#### API サーバー
-
-```bash
-cd apps/api
-bun run dev
-```
-
-#### Web アプリ
-
-```bash
-cd apps/web
-bun run dev
-```
+必要に応じて Web の `VITE_API_BASE_URL` を `.env` で設定します（既定は `http://localhost:3000`）。
 
 ## ビルド
-
-### すべてのパッケージをビルド
 
 ```bash
 bun run build
 ```
 
-### 型チェック
+型チェックのみを実行する場合は:
 
 ```bash
 bun run typecheck
 ```
 
-## クリーンアップ
-
-### ビルド成果物のみをクリーン（推奨）
+クリーンアップ:
 
 ```bash
+# 成果物とキャッシュのみ
 bun run clean
-```
 
-ビルド成果物（`dist`）と Turborepo のキャッシュ（`.turbo`）のみを削除します。
-依存関係は保持されるため、すぐに開発を再開できます。
-
-### 完全なクリーンアップ
-
-```bash
+# 依存関係まで含めて全消し
 bun run clean:all
 ```
-
-上記に加えて、すべての `node_modules` も削除します。
-実行後は `bun install` で依存関係を再インストールする必要があります。
-
-## コード品質
-
-### Lint と Format
-
-```bash
-# コードをチェックして自動修正
-bun run check
-
-# Lint のみ実行
-bun run lint
-
-# フォーマットのみ実行
-bun run format
-
-# CI で使用（自動修正なし）
-bun run ci
-```
-
-**Biome** を使用してコードの Lint とフォーマットを行っています。
-厳格なルールセットにより、コード品質を保証しています。
-
-### Git Hooks
-
-**Lefthook** により、コミット前に Biome によるチェックと自動修正が実行されます。
-ステージングされたファイルのみが対象となり、修正されたファイルは自動的に再ステージングされます。
-これにより、コードベースの品質が常に保たれます。
 
 ## テスト
 
 ```bash
-# テストを実行
-bun test
+# ワークスペース全体のテスト（ワンショット）
+bun run test:run
 
-# カバレッジ付きでテストを実行
-bun run test:coverage
+# ウォッチモード
+bun run test:watch
+
+# カバレッジ（任意）
+bun run test:run --coverage
 ```
 
-**Vitest** を使用してユニットテストを実行します。
+詳細は [docs/testing.md](./docs/testing.md) を参照してください。
 
-詳細は [テストガイド](./docs/testing.md) を参照してください。
+## コード品質
 
-## 技術スタック
+```bash
+# Lint + Format（自動修正）
+bun run check
 
-### モノレポ管理
-- **Turborepo**: タスクの並列実行とキャッシング
-- **Bun**: パッケージマネージャー・ランタイム
+# Lint のみ / Format のみ
+bun run lint
+bun run format
 
-### コード品質
-- **Biome**: Linter と Formatter（厳格なルールセット）
-- **Lefthook**: Git Hooks 管理
-- **Vitest**: ユニットテストフレームワーク
+# CI 用（自動修正なし）
+bun run ci
+```
 
-### API (`apps/api`)
-- **Hono**: 軽量な Web フレームワーク
-- **Bun**: ランタイム
+- Lint/Format: Biome
+- Git Hooks: Lefthook（コミット前に Biome を実行）
 
-### Web (`apps/web`)
-- **React 19**: UI ライブラリ
-- **Vite**: ビルドツール
-- **TypeScript**: 型安全性
+## ドキュメント
 
-### 共有パッケージ (`packages/shared`)
-- **TypeScript**: 型定義と共有コード
-- **Zod**: スキーマ定義とバリデーション（api/web 間で型を共有）
+- Web 開発
+  - ルーティング: `docs/apps/web/routing.md`
+  - API クライアント: `docs/apps/web/api-client.md`
+  - 設定: `docs/apps/web/configuration.md`
+  - コンポーネント: `docs/apps/web/components.md`
+  - スタイル: `docs/apps/web/styling.md`
+  - 環境変数: `docs/apps/web/environment-variables.md`
+- テスト: `docs/testing.md`
 
-### TypeScript 設定
-- **Project References**: モノレポ間の型参照を最適化
-- **Composite プロジェクト**: shared パッケージで型定義を生成
-- **統一されたビルド出力**: すべて `dist/` ディレクトリに出力
-
-## Turbo タスク
-
-プロジェクトでは以下のタスクが Turborepo で管理されています：
-
-- `dev`: 開発サーバーの起動（キャッシュなし、永続的）
-- `build`: ビルド実行（依存関係を考慮、出力先: `dist/`）
-- `clean`: ビルド成果物とキャッシュのクリーンアップ
-
-詳細は `turbo.json` を参照してください。
-
-**注意**: `typecheck` は TypeScript Project References を活用するため、Turbo を経由せず直接 `tsc -b` を実行します。
-
-## 利用可能なスクリプト
+## スクリプト一覧
 
 | コマンド | 説明 |
 |---------|------|
-| `bun run dev` | すべてのアプリの開発サーバーを起動 |
+| `bun run dev` | すべてのアプリを同時に起動 |
 | `bun run build` | すべてのパッケージをビルド |
-| `bun test` | テストを実行 |
-| `bun run test:coverage` | カバレッジ付きでテストを実行 |
-| `bun run typecheck` | TypeScript の型チェックを実行 |
-| `bun run lint` | Biome でコードを検証 |
-| `bun run format` | Biome でコードをフォーマット |
-| `bun run check` | Biome で検証とフォーマットを実行（自動修正） |
-| `bun run ci` | Biome で CI チェック（自動修正なし） |
-| `bun run clean` | ビルド成果物とキャッシュを削除 |
-| `bun run clean:all` | 上記 + node_modules も削除 |
+| `bun run typecheck` | TypeScript の型チェック |
+| `bun run test:run` | テスト（ワンショット） |
+| `bun run test:watch` | テスト（ウォッチ） |
+| `bun run lint` | Biome Lint 実行 |
+| `bun run format` | Biome Format 実行 |
+| `bun run check` | Lint + Format（自動修正） |
+| `bun run ci` | CI 用 Biome チェック |
+| `bun run clean` | 成果物とキャッシュを削除 |
+| `bun run clean:all` | 上記 + 依存関係も削除 |
+
