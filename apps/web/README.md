@@ -1,73 +1,50 @@
-# React + TypeScript + Vite
+# @sos26/web (React + Vite)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React 19 + Vite アプリケーション。TanStack Router（ファイルベース）と `@sos26/shared` のスキーマ/エンドポイントを利用します。
 
-Currently, two official plugins are available:
+## スクリプト
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+```bash
+# 開発サーバー（http://localhost:5173）
+bun run dev
 
-## React Compiler
+# ビルド
+bun run build
 
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
+# プレビュー
+bun run preview
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# テスト
+bun run test:run
+bun run test:watch
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 環境変数
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- 設定場所: `apps/web/.env`（または `.env.local`）
+- 例は `apps/web/.env.example` を参照
+- 主要変数: `VITE_API_BASE_URL`（デフォルト: `http://localhost:3000`）
+- 詳細: `docs/apps/web/environment-variables.md`
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## ルーティング
+
+- TanStack Router のファイルベースルーティング（`@tanstack/router-plugin`）
+- ページは `src/routes` に配置
+- 詳細: `docs/apps/web/routing.md`
+
+## API クライアント
+
+- `@sos26/shared` のエンドポイント定義を参照
+- 実行時は Zod で入出力を検証
+- ky ベースの HTTP クライアント + 統一エラー/Result 型
+- 詳細: `docs/apps/web/api-client.md`
+
+## コンポーネントとスタイル
+
+- 共通コンポーネント: `src/components/*`
+- スタイル: CSS Modules (SCSS) — `*.module.scss`
+- 詳細: `docs/apps/web/components.md`, `docs/apps/web/styling.md`
+
+## エイリアス
+
+- `@/*` → `src/*`（`tsconfig.app.json` と `vite.config.ts` で設定）
