@@ -5,6 +5,7 @@ on:
     branches: [main, develop]
   pull_request:
     branches: [main, develop]
+    types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
   ci:
@@ -29,4 +30,9 @@ jobs:
         run: bun run typecheck
 
       - name: Build
+        if: github.event_name == 'push' || !github.event.pull_request.draft
         run: bun run build
+
+      - name: Run tests
+        if: github.event_name == 'push' || !github.event.pull_request.draft
+        run: bun run test:run
