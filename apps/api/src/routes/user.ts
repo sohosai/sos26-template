@@ -1,6 +1,7 @@
 import { userSchema } from "@sos26/shared";
 import { Hono } from "hono";
 import type { z } from "zod";
+import { Errors } from "../lib/error";
 
 type User = z.infer<typeof userSchema>;
 
@@ -21,14 +22,24 @@ userRoute.get("/users", c => c.json(db.users));
 userRoute.get("/users/:id", c => {
 	const id = c.req.param("id");
 	const user = db.users.find(u => u.id === id);
-	if (!user) return c.json({ message: "Not Found" }, 404);
+	if (!user) {
+		throw Errors.notFound("ユーザーが見つかりません");
+	}
 	return c.json(user);
 });
 
 // POST /users
 userRoute.post("/users", async c => {
 	const body = await c.req.json().catch(() => ({}));
+	// zodのparseはthrowするので、onErrorでVALIDATION_ERRORに変換される
 	const parsed = userSchema.pick({ name: true, email: true }).parse(body);
+
+	// メールアドレスの重複チェック
+	const existingUser = db.users.find(u => u.email === parsed.email);
+	if (existingUser) {
+		throw Errors.alreadyExists("このメールアドレスは既に使用されています");
+	}
+
 	const newUser: User = {
 		id: `u_${Date.now()}`,
 		name: parsed.name,
@@ -42,7 +53,9 @@ userRoute.post("/users", async c => {
 userRoute.delete("/users/:id", c => {
 	const id = c.req.param("id");
 	const idx = db.users.findIndex(u => u.id === id);
-	if (idx === -1) return c.json({ success: false }, 404);
+	if (idx === -1) {
+		throw Errors.notFound("ユーザーが見つかりません");
+	}
 	db.users.splice(idx, 1);
 	return c.json({ success: true });
 });

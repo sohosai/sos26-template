@@ -1,7 +1,11 @@
 import { Hono } from "hono";
+import { errorHandler } from "./lib/error-handler";
 import { userRoute } from "./routes/user";
 
 const app = new Hono();
+
+// 統一エラーハンドラ
+app.onError(errorHandler);
 
 // CORS (開発確認用の簡易版)
 app.use("/*", async (c, next) => {
