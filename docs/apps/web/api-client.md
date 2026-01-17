@@ -21,7 +21,7 @@
 
 - API 仕様変更時の変更漏れが防げる
 - 型安全と実行時検証の両方を確保
-- try/catch を UI 層で書かずに済む（Result 型による分岐）
+- TanStack Query との統合が容易（throw 方式）
 - 通信層の横断関心事を一元管理できる
 
 ---
@@ -32,16 +32,16 @@
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│ UI Layer (React Components)                         │
-│ - Result型で分岐: if (!res.ok) { ... }              │
-│ - try/catch を書かない                               │
+│ UI Layer (React Components / TanStack Query)        │
+│ - error を isClientError() で判定                   │
+│ - kind / code で分岐                                │
 └────────────────┬────────────────────────────────────┘
                  │
                  ▼
 ┌─────────────────────────────────────────────────────┐
 │ Domain API Layer (src/lib/api/*)                    │
 │ - getUser(), createUser() など                      │
-│ - Promise<Result<T>> を返す                         │
+│ - 成功: T を返す / 失敗: ClientError を throw        │
 └────────────────┬────────────────────────────────────┘
                  │
                  ▼
@@ -50,7 +50,7 @@
 │ - callGetApi() / callBodyApi() / callNoBodyApi()   │
 │ - endpoint定義を受け取り、必ず zod.parse を実行     │
 │ - pathParams / query / request / response を検証    │
-│ - pathの置換・整形（先頭スラッシュ除去→prefixUrl連結）│
+│ - 失敗時は throwClientError() で統一エラーに変換    │
 └────────────────┬────────────────────────────────────┘
                  │
                  ▼
@@ -62,9 +62,9 @@
                  │
                  ▼
 ┌─────────────────────────────────────────────────────┐
-│ Error Handling & Result Wrapper                     │
-│ - toApiError(): 各種エラーを統一型に変換            │
-│ - toResult(): Promise<T> → Promise<Result<T>>      │
+│ Error Handling (src/lib/http/error.ts)              │
+│ - ClientError: フロント用統一エラー型               │
+│ - throwClientError(): 各種エラーを変換してthrow     │
 └─────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────┐
@@ -81,8 +81,7 @@
 apps/web/src/lib/
 ├── http/
 │   ├── client.ts       # ky共通インスタンス
-│   ├── error.ts        # 統一エラー型と変換関数
-│   └── result.ts       # Result型とラッパ関数
+│   └── error.ts        # ClientError型、isClientError、throwClientError
 └── api/
     ├── core.ts         # 共通APIcaller（callGetApi/callBodyApi/callNoBodyApi）
     └── user.ts         # ドメイン別API（getUser/createUser/deleteUserなど）
@@ -91,6 +90,9 @@ packages/shared/src/
 ├── endpoints/
 │   ├── types.ts        # Endpoint型定義
 │   └── user.ts         # userエンドポイント定義
+├── errors/
+│   ├── code.ts         # ErrorCode定義
+│   └── response.ts     # ApiErrorResponseスキーマ
 └── schemas/
     └── user.ts         # userスキーマ定義
 ```
@@ -155,21 +157,23 @@ export const httpClient = ky.create({
 
 これにより、「型が合っているはず」という思い込みを排除できます。仕様変更時に `shared` を直すと、web/api が即座に壊れ、変更漏れを検知できます。
 
-#### (4) safe-fetch 的な体験を安定した土台で再現できる
+#### (4) TanStack Query との統合が容易
 
-safe-fetch 系ライブラリ（Result/Union を返す設計）は魅力的ですが、採用事例・知見が少なく、基盤層としての長期運用リスクがあります。
-
-ky + 統一エラー型 + Result ラッパにより、同等の開発体験を安定した土台で実現できます。
+API 関数は成功時にデータを返し、失敗時に統一エラー型（ClientError）を throw する設計です。これにより TanStack Query との統合が自然に行えます。
 
 ```typescript
-// UI側での使用例
-const res = await getUser({ id: "123" });
-if (!res.ok) {
-  // エラーハンドリング（try/catchなし）
-  console.error(res.error.kind);
-  return;
+// TanStack Query での使用例
+const { data, error } = useQuery({
+  queryKey: ["user", id],
+  queryFn: () => getUser({ id }),
+});
+
+if (error && isClientError(error)) {
+  // code getter でAPIエラーコードに直接アクセス
+  if (error.code) {
+    console.error(error.code);
+  }
 }
-console.log(res.data.name); // 成功時の処理
 ```
 
 ### 他の選択肢を採用しなかった理由
@@ -362,14 +366,16 @@ import {
   listPostsEndpoint,
   type Post,
 } from "@sos26/shared";
-import type { Result } from "../http/result";
 import { callBodyApi, callGetApi, callNoBodyApi } from "./core";
 
 /**
  * GET /posts/:id
  * 指定IDの投稿を取得
+ *
+ * 成功時: Post を返す
+ * 失敗時: ClientError を throw
  */
-export async function getPost(params: { id: string }): Promise<Result<Post>> {
+export async function getPost(params: { id: string }): Promise<Post> {
   return callGetApi(getPostEndpoint, {
     pathParams: { id: params.id },
   });
@@ -385,7 +391,7 @@ export async function listPosts(params?: {
     limit?: number;
     authorId?: string;
   };
-}): Promise<Result<Post[]>> {
+}): Promise<Post[]> {
   return callGetApi(listPostsEndpoint, {
     query: params?.query,
   });
@@ -398,7 +404,7 @@ export async function listPosts(params?: {
 export async function createPost(body: {
   title: string;
   content: string;
-}): Promise<Result<Post>> {
+}): Promise<Post> {
   return callBodyApi(createPostEndpoint, body);
 }
 
@@ -408,58 +414,40 @@ export async function createPost(body: {
  */
 export async function deletePost(params: {
   id: string;
-}): Promise<Result<{ success: boolean }>> {
+}): Promise<{ success: boolean }> {
   return callNoBodyApi(deletePostEndpoint, {
     pathParams: { id: params.id },
   });
 }
 ```
 
-### 3. UI で API を呼び出す
+### 3. UI で API を呼び出す（TanStack Query 推奨）
 
 ```typescript
 // apps/web/src/routes/posts/$id.tsx
+import { useQuery } from "@tanstack/react-query";
 import { getPost } from "@/lib/api/post";
+import { isClientError } from "@/lib/http/error";
+import { ErrorCode } from "@sos26/shared";
 
 export function PostDetail() {
   const { id } = useParams();
-  const [post, setPost] = useState<Post | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchPost() {
-      const res = await getPost({ id });
+  const { data: post, error, isLoading } = useQuery({
+    queryKey: ["post", id],
+    queryFn: () => getPost({ id }),
+  });
 
-      if (!res.ok) {
-        // エラーハンドリング（try/catchなし）
-        switch (res.error.kind) {
-          case "http":
-            setError(`HTTPエラー: ${res.error.status}`);
-            break;
-          case "timeout":
-            setError("タイムアウトしました");
-            break;
-          case "network":
-            setError("ネットワークエラー");
-            break;
-          case "invalid_response":
-            setError("レスポンスが不正です");
-            break;
-          default:
-            setError("不明なエラー");
-        }
-        return;
-      }
+  if (isLoading) return <div>読み込み中...</div>;
 
-      // 成功時の処理
-      setPost(res.data);
+  if (error && isClientError(error)) {
+    if (error.code === ErrorCode.NOT_FOUND) {
+      return <div>投稿が見つかりません</div>;
     }
+    return <div>エラー: {error.message}</div>;
+  }
 
-    fetchPost();
-  }, [id]);
-
-  if (error) return <div>エラー: {error}</div>;
-  if (!post) return <div>読み込み中...</div>;
+  if (!post) return null;
 
   return (
     <div>
@@ -497,9 +485,7 @@ export const getUserEndpoint: GetEndpoint<
 } as const;
 
 // web 側での実装
-export async function getUser(params: {
-  id: string;
-}): Promise<Result<User>> {
+export async function getUser(params: { id: string }): Promise<User> {
   return callGetApi(getUserEndpoint, {
     pathParams: { id: params.id }, // zodで検証される
   });
@@ -537,14 +523,14 @@ export async function listPosts(params?: {
     limit?: number;
     authorId?: string;
   };
-}): Promise<Result<Post[]>> {
+}): Promise<Post[]> {
   return callGetApi(listPostsEndpoint, {
     query: params?.query, // zodで検証される
   });
 }
 
 // UI側での使用例
-const res = await listPosts({
+const posts = await listPosts({
   query: { page: 1, limit: 10, authorId: "user-123" },
 });
 ```
@@ -575,7 +561,7 @@ export const deleteUserEndpoint: NoBodyEndpoint<
 // web 側での実装
 export async function deleteUser(params: {
   id: string;
-}): Promise<Result<{ success: boolean }>> {
+}): Promise<{ success: boolean }> {
   return callNoBodyApi(deleteUserEndpoint, { // callNoBodyApiを使用
     pathParams: { id: params.id },
   });
@@ -586,64 +572,61 @@ export async function deleteUser(params: {
 
 ## エラーハンドリング
 
-### 統一エラー型（ApiError）
+詳細は [エラーハンドリングガイド](../../how-to/error-handling.md) を参照してください。
 
-すべてのエラーは `ApiError` 型に変換されます（discriminated union）。
+### ClientError 型
+
+API Client が throw する統一エラー型です。
 
 ```typescript
-export type ApiError =
-  | { kind: "http"; status: number; statusText: string; body?: unknown }
-  | { kind: "timeout" }
+type ClientError =
+  | { kind: "api"; error: ApiErrorResponse }
   | { kind: "network"; message: string }
-  | { kind: "invalid_response"; issues: ZodError["issues"] }
-  | { kind: "unknown"; error: unknown };
+  | { kind: "timeout"; message: string }
+  | { kind: "abort"; message: string }
+  | { kind: "unknown"; message: string; cause?: unknown };
 ```
 
 ### エラーの分類
 
-| kind               | 説明                                     | 原因                       |
-| ------------------ | ---------------------------------------- | -------------------------- |
-| `http`             | HTTPエラー（4xx, 5xx）                   | `HTTPError`（ky）          |
-| `timeout`          | タイムアウトエラー                       | `TimeoutError`（ky）       |
-| `network`          | ネットワークエラー                       | `TypeError`（fetch）       |
-| `invalid_response` | レスポンスがzodスキーマに合わない        | `ZodError`（zod）          |
-| `unknown`          | その他の予期しないエラー                 | 上記以外                   |
+| kind      | 説明                                     | 原因                       |
+| --------- | ---------------------------------------- | -------------------------- |
+| `api`     | バックエンドからの統一形式エラー         | `HTTPError` + ApiErrorResponse |
+| `timeout` | タイムアウトエラー                       | `TimeoutError`（ky）       |
+| `network` | ネットワークエラー                       | `TypeError`（fetch）       |
+| `abort`   | リクエスト中断                           | `AbortError`               |
+| `unknown` | その他の予期しないエラー                 | 上記以外                   |
 
 ### UI でのエラー処理パターン
 
 ```typescript
-const res = await getUser({ id: "123" });
+import { getUser } from "@/lib/api/user";
+import { isClientError } from "@/lib/http/error";
+import { ErrorCode } from "@sos26/shared";
 
-if (!res.ok) {
-  // kind で分岐してエラーハンドリング
-  switch (res.error.kind) {
-    case "http":
-      if (res.error.status === 404) {
-        alert("ユーザーが見つかりません");
-      } else if (res.error.status >= 500) {
-        alert("サーバーエラーが発生しました");
-      }
-      break;
-    case "timeout":
-      alert("リクエストがタイムアウトしました");
-      break;
-    case "network":
-      alert("ネットワークエラーが発生しました");
-      break;
-    case "invalid_response":
-      console.error("レスポンス検証エラー:", res.error.issues);
-      alert("予期しないレスポンスを受信しました");
-      break;
-    case "unknown":
-      console.error("不明なエラー:", res.error.error);
-      alert("エラーが発生しました");
-      break;
+try {
+  const user = await getUser({ id: "123" });
+  console.log(user.name);
+} catch (error) {
+  if (isClientError(error)) {
+    // APIエラーは code getter で分岐
+    if (error.code === ErrorCode.NOT_FOUND) {
+      alert("ユーザーが見つかりません");
+      return;
+    }
+    // 非APIエラーは kind で分岐
+    switch (error.kind) {
+      case "timeout":
+        alert("タイムアウトしました");
+        break;
+      case "network":
+        alert("ネットワークエラー");
+        break;
+      default:
+        alert("エラーが発生しました");
+    }
   }
-  return;
 }
-
-// 成功時の処理
-console.log(res.data);
 ```
 
 ---
@@ -654,8 +637,8 @@ console.log(res.data);
 
 - ✅ すべての API 仕様を `shared` に定義する
 - ✅ endpoint 定義では必ず zod スキーマを指定する
-- ✅ UI 層では Result 型の `ok` で分岐する
-- ✅ エラーは `kind` で分類してハンドリングする
+- ✅ エラーは `isClientError()` で判定し、`kind` / `code` で分岐する
+- ✅ TanStack Query を使って API を呼び出す
 - ✅ 共通的なエラー処理は hooks で実装する
 
 ### DON'T（非推奨）
@@ -664,7 +647,7 @@ console.log(res.data);
 - ❌ `any` 型を使わない
 - ❌ zod.parse を省略しない
 - ❌ API エラーを握り潰さない
-- ❌ try/catch を UI 層で乱用しない（Result 型を使う）
+- ❌ `message` 文字列で分岐しない（`code` を使う）
 
 ---
 
@@ -678,17 +661,28 @@ console.log(res.data);
 2. shared を SSOT として維持し、OpenAPI は派生物として扱う
 3. 既存の実装を大きく変更せずに移行できる
 
-### 状態管理ライブラリとの統合
+### TanStack Query との統合
 
-TanStack Query などを導入する場合、現在の API 関数をそのまま `queryFn` として使用できます。
+API 関数は throw 方式なので、そのまま `queryFn` として使用できます。
 
 ```typescript
-const { data, error } = useQuery({
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { getUser, createUser } from "@/lib/api/user";
+import { isClientError } from "@/lib/http/error";
+
+// Query
+const { data, error, isLoading } = useQuery({
   queryKey: ["user", id],
-  queryFn: async () => {
-    const res = await getUser({ id });
-    if (!res.ok) throw res.error;
-    return res.data;
+  queryFn: () => getUser({ id }),
+});
+
+// Mutation
+const mutation = useMutation({
+  mutationFn: createUser,
+  onError: (error) => {
+    if (isClientError(error) && error.code) {
+      // error.code でエラーコード分岐
+    }
   },
 });
 ```
@@ -702,6 +696,6 @@ const { data, error } = useQuery({
 1. **shared(zod) を単一の真実源（SSOT）とする**
 2. **実行時検証を徹底し、型だけに頼らない**
 3. **通信層の運用責務を ky に集約する**
-4. **UI 層は Result 型で安全に分岐する**
+4. **エラーは `ErrorCode` / `kind` で分岐する**
 
 この設計により、API 仕様変更時の変更漏れが防げ、型安全と実行時安全の両方を確保できます。

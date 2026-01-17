@@ -1,121 +1,117 @@
+import {
+	type ApiErrorResponse,
+	apiErrorResponseSchema,
+	type ErrorCode,
+} from "@sos26/shared";
 import { HTTPError, TimeoutError } from "ky";
-import { ZodError } from "zod";
 
 /**
- * エラー発生時のコンテキスト情報
- * デバッグ時にどのAPIエンドポイントでエラーが発生したかを特定できる
+ * フロント用統一エラー型
+ *
+ * API Clientがすべての失敗をこの型に変換してthrowする
+ * UI層では try-catch せず、TanStack Query の error として扱う
+ *
+ * 分岐は kind で行い、APIエラーの場合は code getter で分岐する
  */
-export type ErrorContext = {
-	method?: string;
-	path?: string;
-};
+export type ClientError =
+	| { kind: "api"; error: ApiErrorResponse }
+	| { kind: "network"; message: string }
+	| { kind: "timeout"; message: string }
+	| { kind: "abort"; message: string }
+	| { kind: "unknown"; message: string; cause?: unknown };
 
 /**
- * API通信で発生する全てのエラーを表す discriminated union
+ * ClientErrorを継承したErrorクラス
  *
- * kind による分岐で、UI側で適切なエラーハンドリングが可能
- * context フィールドにより、どのAPIでエラーが発生したかを追跡可能
+ * TanStack Queryがerrorを捕捉するためにはErrorインスタンスである必要がある
  */
-export type ApiError =
-	| {
-			kind: "http";
-			status: number;
-			statusText: string;
-			body?: unknown;
-			context?: ErrorContext;
-	  }
-	| {
-			kind: "timeout";
-			context?: ErrorContext;
-	  }
-	| {
-			kind: "network";
-			message: string;
-			context?: ErrorContext;
-	  }
-	| {
-			kind: "invalid_response";
-			issues: ZodError["issues"];
-			context?: ErrorContext;
-	  }
-	| {
-			kind: "unknown";
-			error: unknown;
-			context?: ErrorContext;
-	  };
+export class ClientErrorClass extends Error {
+	readonly clientError: ClientError;
+
+	constructor(clientError: ClientError) {
+		const message =
+			clientError.kind === "api"
+				? clientError.error.error.message
+				: clientError.message;
+		super(message);
+		this.name = "ClientError";
+		this.clientError = clientError;
+	}
+
+	/** ClientError 型にアクセスするためのgetter */
+	get kind(): ClientError["kind"] {
+		return this.clientError.kind;
+	}
+
+	/** APIエラーの場合はエラーコード、それ以外はundefined */
+	get code(): ErrorCode | undefined {
+		return this.clientError.kind === "api"
+			? this.clientError.error.error.code
+			: undefined;
+	}
+
+	/** APIエラーの場合はApiErrorResponse、それ以外はundefined */
+	get apiError(): ApiErrorResponse | undefined {
+		return this.clientError.kind === "api" ? this.clientError.error : undefined;
+	}
+}
 
 /**
- * kyやzodが投げる各種エラーを統一型 ApiError に変換する
- *
- * この関数により、UI層はエラーの種類を意識せず kind で分岐できる
- *
- * @param error - 変換対象のエラー
- * @param context - エラー発生時のコンテキスト情報（デバッグ用）
+ * ClientErrorかどうかを判定する型ガード
  */
-export async function toApiError(
-	error: unknown,
-	context?: ErrorContext
-): Promise<ApiError> {
-	// HTTPエラー（4xx, 5xx）
-	if (error instanceof HTTPError) {
-		// レスポンスbodyのパースを試みる
-		let body: unknown;
-		try {
-			// responseのクローンを作成してパース（元のレスポンスストリームを消費しないため）
-			const clonedResponse = error.response.clone();
-			const contentType = clonedResponse.headers.get("content-type");
+export function isClientError(error: unknown): error is ClientErrorClass {
+	return error instanceof ClientErrorClass;
+}
 
-			// Content-Typeに応じてパース方法を変える
-			if (contentType?.includes("application/json")) {
-				body = await clonedResponse.json();
-			} else {
-				// JSONでない場合はテキストとして取得
-				body = await clonedResponse.text();
-			}
-		} catch {
-			// パースに失敗した場合はundefined
-			body = undefined;
+/** HTTPエラーから ClientError を生成 */
+async function parseHttpError(error: HTTPError): Promise<ClientError> {
+	const response = error.response.clone();
+	const contentType = response.headers.get("content-type");
+
+	if (contentType?.includes("application/json")) {
+		const body = await response.json().catch(() => null);
+		const parsed = apiErrorResponseSchema.safeParse(body);
+		if (parsed.success) {
+			return { kind: "api", error: parsed.data };
 		}
-
-		return {
-			kind: "http",
-			status: error.response.status,
-			statusText: error.response.statusText,
-			body,
-			context,
-		};
 	}
 
-	// タイムアウトエラー
-	if (error instanceof TimeoutError) {
-		return {
-			kind: "timeout",
-			context,
-		};
-	}
-
-	// zodバリデーションエラー（レスポンス不正）
-	if (error instanceof ZodError) {
-		return {
-			kind: "invalid_response",
-			issues: error.issues,
-			context,
-		};
-	}
-
-	// ネットワークエラー（fetch由来のTypeError）
-	if (error instanceof TypeError) {
-		return {
-			kind: "network",
-			message: error.message,
-			context,
-		};
-	}
-
-	// その他の予期しないエラー
 	return {
 		kind: "unknown",
-		error,
-		context,
+		message: `HTTP ${error.response.status}: ${error.response.statusText}`,
+		cause: error,
 	};
+}
+
+/** エラーを ClientError に変換 */
+function toClientError(error: unknown): ClientError {
+	if (error instanceof TimeoutError) {
+		return { kind: "timeout", message: "リクエストがタイムアウトしました" };
+	}
+	if (error instanceof DOMException && error.name === "AbortError") {
+		return { kind: "abort", message: "リクエストが中断されました" };
+	}
+	if (error instanceof TypeError) {
+		return { kind: "network", message: "ネットワークエラーが発生しました" };
+	}
+	return {
+		kind: "unknown",
+		message:
+			error instanceof Error ? error.message : "不明なエラーが発生しました",
+		cause: error,
+	};
+}
+
+/**
+ * 各種エラーを ClientError に変換してthrowする
+ *
+ * API Clientの try-catch 内でのみ使用する
+ */
+export async function throwClientError(error: unknown): Promise<never> {
+	const clientError =
+		error instanceof HTTPError
+			? await parseHttpError(error)
+			: toClientError(error);
+
+	throw new ClientErrorClass(clientError);
 }

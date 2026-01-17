@@ -1,6 +1,7 @@
 import type { Endpoint } from "@sos26/shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
+import { ClientErrorClass, isClientError } from "../http/error";
 import { callBodyApi, callGetApi, callNoBodyApi } from "./core";
 
 // httpClientのモック
@@ -53,10 +54,7 @@ describe("callGetApi", () => {
 			expect(mockGet).toHaveBeenCalledWith("users", {
 				searchParams: undefined,
 			});
-			expect(result.ok).toBe(true);
-			if (result.ok) {
-				expect(result.data).toEqual(mockResponse);
-			}
+			expect(result).toEqual(mockResponse);
 		});
 
 		it("pathパラメータありでGETリクエストを実行する", async () => {
@@ -98,10 +96,7 @@ describe("callGetApi", () => {
 			expect(mockGet).toHaveBeenCalledWith("users/456", {
 				searchParams: undefined,
 			});
-			expect(result.ok).toBe(true);
-			if (result.ok) {
-				expect(result.data).toEqual(mockResponse);
-			}
+			expect(result).toEqual(mockResponse);
 		});
 
 		it("queryパラメータありでGETリクエストを実行する", async () => {
@@ -145,10 +140,7 @@ describe("callGetApi", () => {
 			expect(mockGet).toHaveBeenCalledWith("users", {
 				searchParams: { page: 1, limit: 10 },
 			});
-			expect(result.ok).toBe(true);
-			if (result.ok) {
-				expect(result.data).toEqual(mockResponse);
-			}
+			expect(result).toEqual(mockResponse);
 		});
 
 		it("pathパラメータとqueryパラメータの両方でGETリクエストを実行する", async () => {
@@ -193,10 +185,7 @@ describe("callGetApi", () => {
 			expect(mockGet).toHaveBeenCalledWith("users/789", {
 				searchParams: { includePosts: true },
 			});
-			expect(result.ok).toBe(true);
-			if (result.ok) {
-				expect(result.data).toEqual(mockResponse);
-			}
+			expect(result).toEqual(mockResponse);
 		});
 
 		it("pathパラメータを正しくURLエンコードする", async () => {
@@ -235,10 +224,7 @@ describe("callGetApi", () => {
 			expect(mockGet).toHaveBeenCalledWith("data/test%2Fvalue", {
 				searchParams: undefined,
 			});
-			expect(result.ok).toBe(true);
-			if (result.ok) {
-				expect(result.data).toEqual(mockResponse);
-			}
+			expect(result).toEqual(mockResponse);
 		});
 
 		it("先頭の複数のスラッシュを正しく除去する", async () => {
@@ -274,15 +260,12 @@ describe("callGetApi", () => {
 			expect(mockGet).toHaveBeenCalledWith("api/test", {
 				searchParams: undefined,
 			});
-			expect(result.ok).toBe(true);
-			if (result.ok) {
-				expect(result.data).toEqual(mockResponse);
-			}
+			expect(result).toEqual(mockResponse);
 		});
 	});
 
-	describe("バリデーションエラー", () => {
-		it("レスポンスのバリデーションに失敗した場合、Result型でエラーを返す", async () => {
+	describe("エラー系", () => {
+		it("レスポンスのバリデーションに失敗した場合、ClientErrorをthrowする", async () => {
 			// Arrange
 			const mockResponse = { id: "123", name: 123 }; // nameが数値（期待は文字列）
 			const mockGet = vi.fn().mockReturnValue({
@@ -311,15 +294,14 @@ describe("callGetApi", () => {
 				response: userSchema,
 			};
 
-			// Act
-			const result = await callGetApi(endpoint);
-
-			// Assert
-			expect(result.ok).toBe(false);
-			if (!result.ok) {
-				expect(result.error.kind).toBe("invalid_response");
-				if (result.error.kind === "invalid_response") {
-					expect(result.error.issues.length).toBeGreaterThan(0);
+			// Act & Assert
+			await expect(callGetApi(endpoint)).rejects.toThrow(ClientErrorClass);
+			try {
+				await callGetApi(endpoint);
+			} catch (error) {
+				expect(isClientError(error)).toBe(true);
+				if (isClientError(error)) {
+					expect(error.kind).toBe("unknown");
 				}
 			}
 		});
@@ -381,10 +363,7 @@ describe("callBodyApi", () => {
 				json: body,
 				searchParams: undefined,
 			});
-			expect(result.ok).toBe(true);
-			if (result.ok) {
-				expect(result.data).toEqual(mockResponse);
-			}
+			expect(result).toEqual(mockResponse);
 		});
 
 		it("POSTリクエストを実行する（pathパラメータあり、queryあり）", async () => {
@@ -434,10 +413,7 @@ describe("callBodyApi", () => {
 				json: body,
 				searchParams: { notify: true },
 			});
-			expect(result.ok).toBe(true);
-			if (result.ok) {
-				expect(result.data).toEqual(mockResponse);
-			}
+			expect(result).toEqual(mockResponse);
 		});
 
 		it("PUTリクエストを実行する", async () => {
@@ -481,10 +457,7 @@ describe("callBodyApi", () => {
 				json: body,
 				searchParams: undefined,
 			});
-			expect(result.ok).toBe(true);
-			if (result.ok) {
-				expect(result.data).toEqual(mockResponse);
-			}
+			expect(result).toEqual(mockResponse);
 		});
 
 		it("PATCHリクエストを実行する", async () => {
@@ -528,15 +501,12 @@ describe("callBodyApi", () => {
 				json: body,
 				searchParams: undefined,
 			});
-			expect(result.ok).toBe(true);
-			if (result.ok) {
-				expect(result.data).toEqual(mockResponse);
-			}
+			expect(result).toEqual(mockResponse);
 		});
 	});
 
-	describe("バリデーションエラー", () => {
-		it("リクエストbodyのバリデーションに失敗した場合、Result型でエラーを返す", async () => {
+	describe("エラー系", () => {
+		it("リクエストbodyのバリデーションに失敗した場合、ClientErrorをthrowする", async () => {
 			// Arrange
 			const requestSchema = z.object({
 				name: z.string(),
@@ -566,20 +536,13 @@ describe("callBodyApi", () => {
 
 			const invalidBody = { name: "User", email: "invalid-email" }; // 不正なemail形式
 
-			// Act
-			const result = await callBodyApi(endpoint, invalidBody as never);
-
-			// Assert
-			expect(result.ok).toBe(false);
-			if (!result.ok) {
-				expect(result.error.kind).toBe("invalid_response");
-				if (result.error.kind === "invalid_response") {
-					expect(result.error.issues.length).toBeGreaterThan(0);
-				}
-			}
+			// Act & Assert
+			await expect(callBodyApi(endpoint, invalidBody as never)).rejects.toThrow(
+				ClientErrorClass
+			);
 		});
 
-		it("レスポンスのバリデーションに失敗した場合、Result型でエラーを返す", async () => {
+		it("レスポンスのバリデーションに失敗した場合、ClientErrorをthrowする", async () => {
 			// Arrange
 			const mockResponse = { id: "999", name: 123 }; // nameが数値（期待は文字列）
 			const mockHttpClient = vi.fn().mockReturnValue({
@@ -608,17 +571,10 @@ describe("callBodyApi", () => {
 
 			const body = { name: "User" };
 
-			// Act
-			const result = await callBodyApi(endpoint, body);
-
-			// Assert
-			expect(result.ok).toBe(false);
-			if (!result.ok) {
-				expect(result.error.kind).toBe("invalid_response");
-				if (result.error.kind === "invalid_response") {
-					expect(result.error.issues.length).toBeGreaterThan(0);
-				}
-			}
+			// Act & Assert
+			await expect(callBodyApi(endpoint, body)).rejects.toThrow(
+				ClientErrorClass
+			);
 		});
 	});
 });
@@ -666,10 +622,7 @@ describe("callNoBodyApi", () => {
 				method: "DELETE",
 				searchParams: undefined,
 			});
-			expect(result.ok).toBe(true);
-			if (result.ok) {
-				expect(result.data).toEqual(mockResponse);
-			}
+			expect(result).toEqual(mockResponse);
 		});
 
 		it("HEADリクエストを実行する", async () => {
@@ -709,10 +662,7 @@ describe("callNoBodyApi", () => {
 				method: "HEAD",
 				searchParams: undefined,
 			});
-			expect(result.ok).toBe(true);
-			if (result.ok) {
-				expect(result.data).toEqual(mockResponse);
-			}
+			expect(result).toEqual(mockResponse);
 		});
 
 		it("queryパラメータありでDELETEリクエストを実行する", async () => {
@@ -752,15 +702,12 @@ describe("callNoBodyApi", () => {
 				method: "DELETE",
 				searchParams: { cascade: true },
 			});
-			expect(result.ok).toBe(true);
-			if (result.ok) {
-				expect(result.data).toEqual(mockResponse);
-			}
+			expect(result).toEqual(mockResponse);
 		});
 	});
 
-	describe("バリデーションエラー", () => {
-		it("レスポンスのバリデーションに失敗した場合、Result型でエラーを返す", async () => {
+	describe("エラー系", () => {
+		it("レスポンスのバリデーションに失敗した場合、ClientErrorをthrowする", async () => {
 			// Arrange
 			const mockResponse = { success: "yes" }; // successがstring（期待はboolean）
 			const mockHttpClient = vi.fn().mockReturnValue({
@@ -787,19 +734,12 @@ describe("callNoBodyApi", () => {
 				response: responseSchema,
 			};
 
-			// Act
-			const result = await callNoBodyApi(endpoint, {
-				pathParams: { id: "123" },
-			});
-
-			// Assert
-			expect(result.ok).toBe(false);
-			if (!result.ok) {
-				expect(result.error.kind).toBe("invalid_response");
-				if (result.error.kind === "invalid_response") {
-					expect(result.error.issues.length).toBeGreaterThan(0);
-				}
-			}
+			// Act & Assert
+			await expect(
+				callNoBodyApi(endpoint, {
+					pathParams: { id: "123" },
+				})
+			).rejects.toThrow(ClientErrorClass);
 		});
 	});
 });

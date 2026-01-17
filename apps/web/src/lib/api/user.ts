@@ -5,26 +5,30 @@ import {
 	listUsersEndpoint,
 	type User,
 } from "@sos26/shared";
-import type { Result } from "../http/result";
 import { callBodyApi, callGetApi, callNoBodyApi } from "./core";
 
 /**
  * GET /users/:id
  * 指定IDのユーザーを取得
  *
- * UI側での使用例:
+ * 成功時: User を返す
+ * 失敗時: ClientError を throw
+ *
+ * TanStack Query での使用例:
  * ```ts
- * const res = await getUser({ id: "123" });
- * if (!res.ok) {
- *   // エラーハンドリング
- *   console.error(res.error.kind);
- *   return;
+ * const { data, error, isLoading } = useQuery({
+ *   queryKey: ["user", id],
+ *   queryFn: () => getUser({ id }),
+ * });
+ *
+ * if (error && isClientError(error)) {
+ *   if (error.code === ErrorCode.NOT_FOUND) {
+ *     return <div>ユーザーが見つかりません</div>;
+ *   }
  * }
- * // 成功時の処理
- * console.log(res.data.name);
  * ```
  */
-export async function getUser(params: { id: string }): Promise<Result<User>> {
+export async function getUser(params: { id: string }): Promise<User> {
 	return callGetApi(getUserEndpoint, {
 		pathParams: { id: params.id },
 	});
@@ -34,15 +38,8 @@ export async function getUser(params: { id: string }): Promise<Result<User>> {
  * GET /users
  * ユーザー一覧を取得（クエリパラメータでフィルタリング）
  *
- * UI側での使用例:
- * ```ts
- * const res = await listUsers({ query: { page: 1, limit: 10, role: "admin" } });
- * if (!res.ok) {
- *   console.error(res.error.kind);
- *   return;
- * }
- * console.log(res.data); // User[]
- * ```
+ * 成功時: User[] を返す
+ * 失敗時: ClientError を throw
  */
 export async function listUsers(params?: {
 	query?: {
@@ -50,7 +47,7 @@ export async function listUsers(params?: {
 		limit?: number;
 		role?: "admin" | "user" | "guest";
 	};
-}): Promise<Result<User[]>> {
+}): Promise<User[]> {
 	return callGetApi(listUsersEndpoint, {
 		query: params?.query,
 	});
@@ -60,24 +57,25 @@ export async function listUsers(params?: {
  * POST /users
  * 新規ユーザーを作成
  *
- * UI側での使用例:
+ * 成功時: User を返す
+ * 失敗時: ClientError を throw
+ *
+ * TanStack Query Mutation での使用例:
  * ```ts
- * const res = await createUser({ name: "Alice", email: "alice@example.com" });
- * if (!res.ok) {
- *   // エラーハンドリング
- *   if (res.error.kind === "http" && res.error.status === 409) {
- *     alert("このメールアドレスは既に使用されています");
- *   }
- *   return;
- * }
- * // 成功時の処理
- * console.log("ユーザー作成成功:", res.data.id);
+ * const mutation = useMutation({
+ *   mutationFn: createUser,
+ *   onError: (error) => {
+ *     if (isClientError(error) && error.code === ErrorCode.ALREADY_EXISTS) {
+ *       alert("このメールアドレスは既に使用されています");
+ *     }
+ *   },
+ * });
  * ```
  */
 export async function createUser(body: {
 	name: string;
 	email: string;
-}): Promise<Result<User>> {
+}): Promise<User> {
 	return callBodyApi(createUserEndpoint, body);
 }
 
@@ -85,19 +83,12 @@ export async function createUser(body: {
  * DELETE /users/:id
  * 指定IDのユーザーを削除
  *
- * UI側での使用例:
- * ```ts
- * const res = await deleteUser({ id: "123" });
- * if (!res.ok) {
- *   console.error(res.error.kind);
- *   return;
- * }
- * console.log("削除成功:", res.data.success);
- * ```
+ * 成功時: { success: boolean } を返す
+ * 失敗時: ClientError を throw
  */
 export async function deleteUser(params: {
 	id: string;
-}): Promise<Result<{ success: boolean }>> {
+}): Promise<{ success: boolean }> {
 	return callNoBodyApi(deleteUserEndpoint, {
 		pathParams: { id: params.id },
 	});
