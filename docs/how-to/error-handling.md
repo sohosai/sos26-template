@@ -213,18 +213,21 @@ async function handleFetchUsers() {
     setOutput(JSON.stringify(users, null, 2));
   } catch (error) {
     if (isClientError(error)) {
-      switch (error.kind) {
-        case "api":
-          setError(`${error.clientError.error.error.code}: ${error.clientError.error.error.message}`);
-          break;
-        case "network":
-          setError("ネットワークエラーが発生しました");
-          break;
-        case "timeout":
-          setError("リクエストがタイムアウトしました");
-          break;
-        default:
-          setError("エラーが発生しました");
+      // APIエラーは code getter で分岐
+      if (error.code) {
+        setError(`${error.code}: ${error.apiError?.error.message}`);
+      } else {
+        // 非APIエラーは kind で分岐
+        switch (error.kind) {
+          case "network":
+            setError("ネットワークエラーが発生しました");
+            break;
+          case "timeout":
+            setError("リクエストがタイムアウトしました");
+            break;
+          default:
+            setError("エラーが発生しました");
+        }
       }
     }
   }

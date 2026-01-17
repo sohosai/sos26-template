@@ -11,7 +11,7 @@ import { HTTPError, TimeoutError } from "ky";
  * API Clientがすべての失敗をこの型に変換してthrowする
  * UI層では try-catch せず、TanStack Query の error として扱う
  *
- * 分岐は kind で行い、APIエラーの場合は error.error.code で分岐する
+ * 分岐は kind で行い、APIエラーの場合は code getter で分岐する
  */
 export type ClientError =
 	| { kind: "api"; error: ApiErrorResponse }

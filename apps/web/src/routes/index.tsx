@@ -23,8 +23,8 @@ export const Route = createFileRoute("/")({
  * ClientErrorClass をユーザーフレンドリーなメッセージに変換
  */
 function formatErrorMessage(err: ClientErrorClass): string {
-	if (err.code && err.apiError) {
-		return `${err.code}: ${err.apiError.error.message}`;
+	if (err.code) {
+		return `${err.code}: ${err.apiError?.error.message}`;
 	}
 	return err.message;
 }
