@@ -4,24 +4,22 @@
  * フロントエンド・バックエンド間で共有されるエラーコード
  * UI分岐は必ずこの code で行う（message 文字列での分岐は禁止）
  */
-export const ErrorCode = {
-	// 認証・認可エラー
-	UNAUTHORIZED: "UNAUTHORIZED",
-	FORBIDDEN: "FORBIDDEN",
+export const ERROR_CODES = [
+	"UNAUTHORIZED", // 401 - 認証エラー
+	"FORBIDDEN", // 403 - 権限エラー
+	"NOT_FOUND", // 404 - リソース不在
+	"ALREADY_EXISTS", // 409 - 重複エラー
+	"VALIDATION_ERROR", // 400 - バリデーションエラー
+	"INVALID_REQUEST", // 400 - 不正リクエスト
+	"INTERNAL", // 500 - 内部エラー
+] as const;
 
-	// リソースエラー
-	NOT_FOUND: "NOT_FOUND",
-	ALREADY_EXISTS: "ALREADY_EXISTS",
+export type ErrorCode = (typeof ERROR_CODES)[number];
 
-	// バリデーションエラー
-	VALIDATION_ERROR: "VALIDATION_ERROR",
-	INVALID_REQUEST: "INVALID_REQUEST",
-
-	// サーバーエラー
-	INTERNAL: "INTERNAL",
-} as const;
-
-export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
+/** ErrorCode.UNAUTHORIZED のようにアクセスできるオブジェクト */
+export const ErrorCode = Object.fromEntries(
+	ERROR_CODES.map(code => [code, code])
+) as { [K in ErrorCode]: K };
 
 /**
  * ErrorCode から HTTP ステータスコードへのマッピング

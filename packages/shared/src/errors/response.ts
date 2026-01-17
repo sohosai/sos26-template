@@ -1,18 +1,10 @@
 import { z } from "zod";
-import { ErrorCode } from "./code";
+import { ERROR_CODES } from "./code";
 
 /**
  * ErrorCode のZodスキーマ
  */
-export const errorCodeSchema = z.enum([
-	ErrorCode.UNAUTHORIZED,
-	ErrorCode.FORBIDDEN,
-	ErrorCode.NOT_FOUND,
-	ErrorCode.ALREADY_EXISTS,
-	ErrorCode.VALIDATION_ERROR,
-	ErrorCode.INVALID_REQUEST,
-	ErrorCode.INTERNAL,
-]);
+export const errorCodeSchema = z.enum(ERROR_CODES);
 
 /**
  * APIエラーレスポンスのZodスキーマ
