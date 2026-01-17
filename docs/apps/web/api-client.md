@@ -169,8 +169,9 @@ const { data, error } = useQuery({
 });
 
 if (error && isClientError(error)) {
-  if (error.kind === "api") {
-    console.error(error.clientError.error.error.code);
+  // code getter でAPIエラーコードに直接アクセス
+  if (error.code) {
+    console.error(error.code);
   }
 }
 ```
@@ -440,10 +441,8 @@ export function PostDetail() {
   if (isLoading) return <div>読み込み中...</div>;
 
   if (error && isClientError(error)) {
-    if (error.kind === "api") {
-      if (error.clientError.error.error.code === ErrorCode.NOT_FOUND) {
-        return <div>投稿が見つかりません</div>;
-      }
+    if (error.code === ErrorCode.NOT_FOUND) {
+      return <div>投稿が見つかりません</div>;
     }
     return <div>エラー: {error.message}</div>;
   }
@@ -610,13 +609,13 @@ try {
   console.log(user.name);
 } catch (error) {
   if (isClientError(error)) {
+    // APIエラーは code getter で分岐
+    if (error.code === ErrorCode.NOT_FOUND) {
+      alert("ユーザーが見つかりません");
+      return;
+    }
+    // 非APIエラーは kind で分岐
     switch (error.kind) {
-      case "api":
-        // code で分岐
-        if (error.clientError.error.error.code === ErrorCode.NOT_FOUND) {
-          alert("ユーザーが見つかりません");
-        }
-        break;
       case "timeout":
         alert("タイムアウトしました");
         break;
@@ -681,8 +680,8 @@ const { data, error, isLoading } = useQuery({
 const mutation = useMutation({
   mutationFn: createUser,
   onError: (error) => {
-    if (isClientError(error) && error.kind === "api") {
-      // エラーコードで分岐
+    if (isClientError(error) && error.code) {
+      // error.code でエラーコード分岐
     }
   },
 });

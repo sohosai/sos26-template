@@ -22,7 +22,7 @@ import { callBodyApi, callGetApi, callNoBodyApi } from "./core";
  * });
  *
  * if (error && isClientError(error)) {
- *   if (error.kind === "api" && error.clientError.error.error.code === "NOT_FOUND") {
+ *   if (error.code === ErrorCode.NOT_FOUND) {
  *     return <div>ユーザーが見つかりません</div>;
  *   }
  * }
@@ -65,10 +65,8 @@ export async function listUsers(params?: {
  * const mutation = useMutation({
  *   mutationFn: createUser,
  *   onError: (error) => {
- *     if (isClientError(error) && error.kind === "api") {
- *       if (error.clientError.error.error.code === "ALREADY_EXISTS") {
- *         alert("このメールアドレスは既に使用されています");
- *       }
+ *     if (isClientError(error) && error.code === ErrorCode.ALREADY_EXISTS) {
+ *       alert("このメールアドレスは既に使用されています");
  *     }
  *   },
  * });
