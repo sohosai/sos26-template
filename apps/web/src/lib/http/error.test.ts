@@ -196,7 +196,6 @@ describe("throwClientError", () => {
 		const httpError = new HTTPError(
 			response,
 			new Request("https://example.com"),
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			{} as any
 		);
 
@@ -217,7 +216,6 @@ describe("throwClientError", () => {
 		const httpError = new HTTPError(
 			response,
 			new Request("https://example.com"),
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			{} as any
 		);
 
@@ -238,7 +236,6 @@ describe("throwClientError", () => {
 		const httpError = new HTTPError(
 			response,
 			new Request("https://example.com"),
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			{} as any
 		);
 
