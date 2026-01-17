@@ -130,17 +130,18 @@ userRoute.post("/users", async c => {
 
 ## フロントエンド（Web）での実装
 
-### ClientError 型
+### ClientErrorClass
 
-API Client が throw する統一エラー型です。
+API Client が throw する統一エラークラスです。
 
 ```ts
-type ClientError =
-  | { kind: "api"; error: ApiErrorResponse }
-  | { kind: "network"; message: string }
-  | { kind: "timeout"; message: string }
-  | { kind: "abort"; message: string }
-  | { kind: "unknown"; message: string; cause?: unknown };
+// 便利なgetterを提供
+class ClientErrorClass extends Error {
+  kind: "api" | "network" | "timeout" | "abort" | "unknown";
+  code: ErrorCode | undefined;      // APIエラー時のみ有効
+  apiError: ApiErrorResponse | undefined;  // APIエラー時のみ有効
+  message: string;  // エラーメッセージ
+}
 ```
 
 ### API 関数の使い方
@@ -171,14 +172,14 @@ const { data, error, isLoading } = useQuery({
 
 // エラーハンドリング
 if (error && isClientError(error)) {
-  if (error.kind === "api") {
-    switch (error.clientError.error.error.code) {
-      case ErrorCode.NOT_FOUND:
-        return <div>ユーザーが見つかりません</div>;
-      case ErrorCode.UNAUTHORIZED:
-        return <div>ログインが必要です</div>;
-    }
+  // code getter でAPIエラーコードに直接アクセス
+  switch (error.code) {
+    case ErrorCode.NOT_FOUND:
+      return <div>ユーザーが見つかりません</div>;
+    case ErrorCode.UNAUTHORIZED:
+      return <div>ログインが必要です</div>;
   }
+  // 非APIエラーは kind で分岐
   if (error.kind === "network") {
     return <div>ネットワークエラーが発生しました</div>;
   }
@@ -188,10 +189,8 @@ if (error && isClientError(error)) {
 const mutation = useMutation({
   mutationFn: createUser,
   onError: (error) => {
-    if (isClientError(error) && error.kind === "api") {
-      if (error.clientError.error.error.code === ErrorCode.ALREADY_EXISTS) {
-        alert("このメールアドレスは既に使用されています");
-      }
+    if (isClientError(error) && error.code === ErrorCode.ALREADY_EXISTS) {
+      alert("このメールアドレスは既に使用されています");
     }
   },
   onSuccess: (user) => {
@@ -239,8 +238,8 @@ async function handleFetchUsers() {
 ### DO（推奨）
 
 ```ts
-// code で分岐する
-if (error.clientError.error.error.code === ErrorCode.NOT_FOUND) {
+// code getter で分岐する（APIエラー時のみ有効）
+if (error.code === ErrorCode.NOT_FOUND) {
   // ...
 }
 
