@@ -2,8 +2,7 @@ import type { Endpoint } from "@sos26/shared";
 import type { Options } from "ky";
 import type { z } from "zod";
 import { httpClient } from "../http/client";
-import type { Result } from "../http/result";
-import { toResult } from "../http/result";
+import { throwClientError } from "../http/error";
 
 /** 正規表現の特殊文字をエスケープ */
 function escapeRegExp(str: string): string {
@@ -72,7 +71,12 @@ function preparePathAndQuery<
 	return { path: normalizedPath, searchParams };
 }
 
-/** GET用の共通API caller（入出力を実行時検証） */
+/**
+ * GET用の共通API caller
+ *
+ * 成功時: DataSchema.parse(data) を返す
+ * 失敗時: ClientError を throw
+ */
 export async function callGetApi<
 	PathParams extends z.ZodTypeAny | undefined,
 	Query extends z.ZodTypeAny | undefined,
@@ -83,10 +87,10 @@ export async function callGetApi<
 		pathParams?: PathParams extends z.ZodTypeAny ? z.infer<PathParams> : never;
 		query?: Query extends z.ZodTypeAny ? z.infer<Query> : never;
 	}
-): Promise<Result<z.infer<Response>>> {
+): Promise<z.infer<Response>> {
 	const { path, searchParams } = preparePathAndQuery(endpoint, params);
 
-	async function executeRequest(): Promise<z.infer<Response>> {
+	try {
 		const response = await httpClient
 			.get(path, {
 				searchParams,
@@ -95,12 +99,17 @@ export async function callGetApi<
 
 		// レスポンスを実行時検証
 		return endpoint.response.parse(response);
+	} catch (error) {
+		return throwClientError(error);
 	}
-
-	return toResult(executeRequest(), { method: "GET", path });
 }
 
-/** bodyありメソッド用の共通API caller */
+/**
+ * bodyありメソッド用の共通API caller
+ *
+ * 成功時: DataSchema.parse(data) を返す
+ * 失敗時: ClientError を throw
+ */
 export async function callBodyApi<
 	Method extends "POST" | "PUT" | "PATCH",
 	PathParams extends z.ZodTypeAny | undefined,
@@ -114,10 +123,10 @@ export async function callBodyApi<
 		pathParams?: PathParams extends z.ZodTypeAny ? z.infer<PathParams> : never;
 		query?: Query extends z.ZodTypeAny ? z.infer<Query> : never;
 	}
-): Promise<Result<z.infer<Response>>> {
+): Promise<z.infer<Response>> {
 	const { path, searchParams } = preparePathAndQuery(endpoint, params);
 
-	async function executeRequest(): Promise<z.infer<Response>> {
+	try {
 		// リクエストbodyを実行時検証
 		const validatedBody = endpoint.request.parse(body);
 
@@ -129,12 +138,17 @@ export async function callBodyApi<
 
 		// レスポンスを実行時検証
 		return endpoint.response.parse(response);
+	} catch (error) {
+		return throwClientError(error);
 	}
-
-	return toResult(executeRequest(), { method: endpoint.method, path });
 }
 
-/** bodyなしメソッド（DELETE/HEAD）用 caller */
+/**
+ * bodyなしメソッド（DELETE/HEAD）用 caller
+ *
+ * 成功時: DataSchema.parse(data) を返す
+ * 失敗時: ClientError を throw
+ */
 export async function callNoBodyApi<
 	Method extends "DELETE" | "HEAD",
 	PathParams extends z.ZodTypeAny | undefined,
@@ -146,10 +160,10 @@ export async function callNoBodyApi<
 		pathParams?: PathParams extends z.ZodTypeAny ? z.infer<PathParams> : never;
 		query?: Query extends z.ZodTypeAny ? z.infer<Query> : never;
 	}
-): Promise<Result<z.infer<Response>>> {
+): Promise<z.infer<Response>> {
 	const { path, searchParams } = preparePathAndQuery(endpoint, params);
 
-	async function executeRequest(): Promise<z.infer<Response>> {
+	try {
 		const response = await httpClient(path, {
 			method: endpoint.method,
 			searchParams,
@@ -157,7 +171,7 @@ export async function callNoBodyApi<
 
 		// レスポンスを実行時検証
 		return endpoint.response.parse(response);
+	} catch (error) {
+		return throwClientError(error);
 	}
-
-	return toResult(executeRequest(), { method: endpoint.method, path });
 }

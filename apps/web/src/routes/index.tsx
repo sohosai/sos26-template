@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
 import { Button } from "@/components/Button";
 import { listUsers } from "@/lib/api/user";
-import type { ApiError } from "@/lib/http/error";
+import { type ClientError, isClientError } from "@/lib/http/error";
 
 export const Route = createFileRoute("/")({
 	component: Index,
@@ -19,20 +19,26 @@ export const Route = createFileRoute("/")({
 	}),
 });
 
-function formatErrorMessage(err: ApiError): string {
+/**
+ * ClientError をユーザーフレンドリーなメッセージに変換
+ *
+ * 使用例:
+ * - kind === "api" の場合は error.error.code で分岐
+ * - その他の kind は直接分岐
+ */
+function formatErrorMessage(err: ClientError): string {
 	switch (err.kind) {
-		case "http":
-			return `HTTP ${err.status} ${err.statusText}`;
+		case "api":
+			// APIエラーの場合は code で分岐
+			return `${err.error.error.code}: ${err.error.error.message}`;
 		case "timeout":
-			return "Timeout";
+			return err.message;
 		case "network":
-			return `Network: ${err.message}`;
-		case "invalid_response": {
-			const fields = (err.issues ?? []).map(i => i.path.join(".")).join(", ");
-			return `Invalid response: ${fields}`;
-		}
-		default:
-			return "Unknown error";
+			return err.message;
+		case "abort":
+			return err.message;
+		case "unknown":
+			return err.message;
 	}
 }
 
@@ -44,12 +50,17 @@ function Index() {
 		setLoading(true);
 		setOutput("Loading...");
 		try {
-			const res = await listUsers();
-			if (!res.ok) {
-				setOutput(`Error: ${formatErrorMessage(res.error)}`);
-				return;
+			// 成功時: User[] が返る
+			// 失敗時: ClientError が throw される
+			const users = await listUsers();
+			setOutput(JSON.stringify(users, null, 2));
+		} catch (error) {
+			// ClientError かどうかを判定
+			if (isClientError(error)) {
+				setOutput(`Error: ${formatErrorMessage(error.clientError)}`);
+			} else {
+				setOutput("Unknown error occurred");
 			}
-			setOutput(JSON.stringify(res.data, null, 2));
 		} finally {
 			setLoading(false);
 		}
