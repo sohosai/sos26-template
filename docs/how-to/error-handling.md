@@ -284,6 +284,12 @@ apps/web/src/lib/http/
 
 ---
 
+## Error Boundary
+
+> **TODO**: Error Boundaryの実装ガイドを追加する
+
+---
+
 ## まとめ
 
 1. **バックエンド**: `Errors.xxx()` を throw するだけ
