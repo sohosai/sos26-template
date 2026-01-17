@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
 import { Button } from "@/components/Button";
 import { listUsers } from "@/lib/api/user";
-import { type ClientError, isClientError } from "@/lib/http/error";
+import { type ClientErrorClass, isClientError } from "@/lib/http/error";
 
 export const Route = createFileRoute("/")({
 	component: Index,
@@ -20,26 +20,13 @@ export const Route = createFileRoute("/")({
 });
 
 /**
- * ClientError をユーザーフレンドリーなメッセージに変換
- *
- * 使用例:
- * - kind === "api" の場合は error.error.code で分岐
- * - その他の kind は直接分岐
+ * ClientErrorClass をユーザーフレンドリーなメッセージに変換
  */
-function formatErrorMessage(err: ClientError): string {
-	switch (err.kind) {
-		case "api":
-			// APIエラーの場合は code で分岐
-			return `${err.error.error.code}: ${err.error.error.message}`;
-		case "timeout":
-			return err.message;
-		case "network":
-			return err.message;
-		case "abort":
-			return err.message;
-		case "unknown":
-			return err.message;
+function formatErrorMessage(err: ClientErrorClass): string {
+	if (err.code && err.apiError) {
+		return `${err.code}: ${err.apiError.error.message}`;
 	}
+	return err.message;
 }
 
 function Index() {
@@ -55,9 +42,8 @@ function Index() {
 			const users = await listUsers();
 			setOutput(JSON.stringify(users, null, 2));
 		} catch (error) {
-			// ClientError かどうかを判定
 			if (isClientError(error)) {
-				setOutput(`Error: ${formatErrorMessage(error.clientError)}`);
+				setOutput(`Error: ${formatErrorMessage(error)}`);
 			} else {
 				setOutput("Unknown error occurred");
 			}

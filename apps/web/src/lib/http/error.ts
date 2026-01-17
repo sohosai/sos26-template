@@ -1,4 +1,8 @@
-import { type ApiErrorResponse, apiErrorResponseSchema } from "@sos26/shared";
+import {
+	type ApiErrorResponse,
+	apiErrorResponseSchema,
+	type ErrorCode,
+} from "@sos26/shared";
 import { HTTPError, TimeoutError } from "ky";
 
 /**
@@ -37,6 +41,18 @@ export class ClientErrorClass extends Error {
 	/** ClientError 型にアクセスするためのgetter */
 	get kind(): ClientError["kind"] {
 		return this.clientError.kind;
+	}
+
+	/** APIエラーの場合はエラーコード、それ以外はundefined */
+	get code(): ErrorCode | undefined {
+		return this.clientError.kind === "api"
+			? this.clientError.error.error.code
+			: undefined;
+	}
+
+	/** APIエラーの場合はApiErrorResponse、それ以外はundefined */
+	get apiError(): ApiErrorResponse | undefined {
+		return this.clientError.kind === "api" ? this.clientError.error : undefined;
 	}
 }
 
