@@ -107,14 +107,27 @@ export default { port: process.env.PORT || 3000, fetch: app.fetch }
 ```ts
 import { listItemsEndpoint, createItemEndpoint } from '@sos26/shared'
 import { callGetApi, callBodyApi } from '@/lib/api/core'
+import { isClientError } from '@/lib/http/error'
 
-// GET
-const list = await callGetApi(listItemsEndpoint)
-if (list.ok) console.log(list.data)
+// GET - 成功時: Item[] を返す / 失敗時: ClientError を throw
+try {
+  const items = await callGetApi(listItemsEndpoint)
+  console.log(items)
+} catch (error) {
+  if (isClientError(error)) {
+    console.error(error.kind, error.message)
+  }
+}
 
 // POST
-const created = await callBodyApi(createItemEndpoint, { label: 'hello' })
-if (!created.ok) console.error(created.error)
+try {
+  const created = await callBodyApi(createItemEndpoint, { label: 'hello' })
+  console.log(created)
+} catch (error) {
+  if (isClientError(error)) {
+    console.error(error.kind, error.message)
+  }
+}
 ```
 
 ## 5. テスト（Vitest）
