@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { env } from "./lib/env";
 import { errorHandler } from "./lib/error-handler";
 import { userRoute } from "./routes/user";
 
@@ -9,13 +10,10 @@ const app = new Hono();
 app.onError(errorHandler);
 
 // CORS
-const corsOrigin = process.env.CORS_ORIGIN?.split(",")
-	.map(o => o.trim())
-	.filter(Boolean);
 app.use(
 	"/*",
 	cors({
-		origin: corsOrigin ?? [],
+		origin: env.CORS_ORIGIN,
 		allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
 		allowHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
 		credentials: true,
@@ -31,6 +29,6 @@ app.get("/", c => {
 app.route("/", userRoute);
 
 export default {
-	port: process.env.PORT || 3000,
+	port: env.PORT,
 	fetch: app.fetch,
 };
