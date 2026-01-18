@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const envSchema = z.object({
-	PORT: z.coerce.number().int().positive().default(3000),
+	PORT: z.coerce.number().int().min(1).max(65535).default(3000),
 	CORS_ORIGIN: z
 		.string()
 		.default("")
@@ -10,6 +10,10 @@ const envSchema = z.object({
 				.split(",")
 				.map(o => o.trim())
 				.filter(Boolean)
+		)
+		.refine(
+			origins => origins.every(o => /^https?:\/\/.+/.test(o)),
+			"各オリジンは有効なURL（http://またはhttps://で始まる）である必要があります"
 		),
 });
 
