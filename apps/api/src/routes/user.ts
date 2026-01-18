@@ -1,22 +1,46 @@
-import { createUserEndpoint, type userSchema } from "@sos26/shared";
+import {
+	createUserEndpoint,
+	listUsersEndpoint,
+	type User,
+} from "@sos26/shared";
 import { Hono } from "hono";
-import type { z } from "zod";
 import { Errors } from "../lib/error";
-
-type User = z.infer<typeof userSchema>;
 
 // In-memory store for demo
 const db: { users: User[] } = {
 	users: [
-		{ id: "u_1", name: "Alice", email: "alice@example.com" },
-		{ id: "u_2", name: "Bob", email: "bob@example.com" },
+		{ id: "u_1", name: "Alice", email: "alice@example.com", role: "admin" },
+		{ id: "u_2", name: "Bob", email: "bob@example.com", role: "user" },
+		{ id: "u_3", name: "Charlie", email: "charlie@example.com", role: "guest" },
 	],
 };
 
 export const userRoute = new Hono();
 
 // GET /users
-userRoute.get("/users", c => c.json(db.users));
+userRoute.get("/users", c => {
+	// Endpoint定義のクエリスキーマで検証
+	const query = listUsersEndpoint.query.parse({
+		page: c.req.query("page"),
+		limit: c.req.query("limit"),
+		role: c.req.query("role"),
+	});
+
+	let result = db.users;
+
+	// roleでフィルタリング
+	if (query.role) {
+		result = result.filter(u => u.role === query.role);
+	}
+
+	// ページネーション
+	const page = query.page ?? 1;
+	const limit = query.limit ?? 10;
+	const start = (page - 1) * limit;
+	result = result.slice(start, start + limit);
+
+	return c.json(result);
+});
 
 // GET /users/:id
 userRoute.get("/users/:id", c => {
@@ -31,7 +55,7 @@ userRoute.get("/users/:id", c => {
 // POST /users
 userRoute.post("/users", async c => {
 	const body = await c.req.json().catch(() => ({}));
-	// zodのparseはthrowするので、onErrorでVALIDATION_ERRORに変換される
+	// Endpoint定義のrequestスキーマで検証（zodのparseはthrowするので、onErrorでVALIDATION_ERRORに変換される）
 	const parsed = createUserEndpoint.request.parse(body);
 
 	// メールアドレスの重複チェック
@@ -44,6 +68,7 @@ userRoute.post("/users", async c => {
 		id: `u_${Date.now()}`,
 		name: parsed.name,
 		email: parsed.email,
+		role: parsed.role,
 	};
 	db.users.push(newUser);
 	return c.json(newUser, 201);

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { userSchema } from "../schemas/user";
+import { userRoleSchema, userSchema } from "../schemas/user";
 import type { BodyEndpoint, GetEndpoint, NoBodyEndpoint } from "./types";
 
 /**
@@ -31,7 +31,7 @@ export const getUserEndpoint: GetEndpoint<
 const listUsersQuerySchema = z.object({
 	page: z.coerce.number().int().positive().optional(),
 	limit: z.coerce.number().int().positive().max(100).optional(),
-	role: z.enum(["admin", "user", "guest"]).optional(),
+	role: userRoleSchema.optional(),
 });
 
 const userListSchema = z.array(userSchema);
@@ -57,6 +57,7 @@ export const listUsersEndpoint: GetEndpoint<
 const createUserRequestSchema = z.object({
 	name: z.string().min(1),
 	email: z.string().email(),
+	role: userRoleSchema,
 });
 
 export const createUserEndpoint: BodyEndpoint<

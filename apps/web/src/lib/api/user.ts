@@ -4,6 +4,7 @@ import {
 	getUserEndpoint,
 	listUsersEndpoint,
 	type User,
+	type UserRole,
 } from "@sos26/shared";
 import { callBodyApi, callGetApi, callNoBodyApi } from "./core";
 
@@ -45,7 +46,7 @@ export async function listUsers(params?: {
 	query?: {
 		page?: number;
 		limit?: number;
-		role?: "admin" | "user" | "guest";
+		role?: UserRole;
 	};
 }): Promise<User[]> {
 	return callGetApi(listUsersEndpoint, {
@@ -75,6 +76,7 @@ export async function listUsers(params?: {
 export async function createUser(body: {
 	name: string;
 	email: string;
+	role: UserRole;
 }): Promise<User> {
 	return callBodyApi(createUserEndpoint, body);
 }
