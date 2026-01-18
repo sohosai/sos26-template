@@ -40,12 +40,13 @@ CORS_ORIGIN=http://localhost:5173,http://localhost:3001
 ### バリデーションルール
 
 **PORT:**
-- 正の整数である必要があります
+- 1〜65535の範囲の整数である必要があります
 - 文字列から数値に自動変換されます
 - 空または未設定の場合はデフォルト値（3000）が使用されます
 
 **CORS_ORIGIN:**
 - カンマ区切りで複数のオリジンを指定可能
+- 各オリジンは `http://` または `https://` で始まる有効なURLである必要があります
 - 各オリジンは自動的にトリミングされます
 - 空文字列は除外されます
 - 未設定の場合は空配列になります
@@ -100,11 +101,15 @@ function configureServer(config: Env) {
 
 ```typescript
 const envSchema = z.object({
-  PORT: z.coerce.number().int().positive().default(3000),
+  PORT: z.coerce.number().int().min(1).max(65535).default(3000),
   CORS_ORIGIN: z
     .string()
     .default("")
-    .transform((val) => val.split(",").map((o) => o.trim()).filter(Boolean)),
+    .transform((val) => val.split(",").map((o) => o.trim()).filter(Boolean))
+    .refine(
+      (origins) => origins.every((o) => /^https?:\/\/.+/.test(o)),
+      "各オリジンは有効なURL（http://またはhttps://で始まる）である必要があります"
+    ),
 
   // 新しい環境変数を追加
   DATABASE_URL: z
