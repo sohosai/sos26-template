@@ -1,4 +1,4 @@
-import { userSchema } from "@sos26/shared";
+import { createUserEndpoint, type userSchema } from "@sos26/shared";
 import { Hono } from "hono";
 import type { z } from "zod";
 import { Errors } from "../lib/error";
@@ -32,7 +32,7 @@ userRoute.get("/users/:id", c => {
 userRoute.post("/users", async c => {
 	const body = await c.req.json().catch(() => ({}));
 	// zodのparseはthrowするので、onErrorでVALIDATION_ERRORに変換される
-	const parsed = userSchema.pick({ name: true, email: true }).parse(body);
+	const parsed = createUserEndpoint.request.parse(body);
 
 	// メールアドレスの重複チェック
 	const existingUser = db.users.find(u => u.email === parsed.email);
